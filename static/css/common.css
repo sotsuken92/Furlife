@@ -1,0 +1,598 @@
+/* =============================================================================
+  フォント読み込み
+   ============================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* =============================================================================
+  リセットCSS
+   ============================================================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* =============================================================================
+  カラーテーマ定義
+   ============================================================================= */
+
+/* デフォルトテーマ(白青) */
+:root {
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e2e8f0;
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-tertiary: #718096;
+  --accent-primary: #3182ce;
+  --accent-secondary: #2c5282;
+  --accent-gradient: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+  --border-color: #cbd5e0;
+  --hover-bg: #edf2f7;
+  --success-color: #38a169;
+  --danger-color: #e53e3e;
+  --warning-color: #dd6b20;
+}
+
+/* ダークテーマ(黒紫) */
+[data-theme="dark"] {
+  --bg-primary: #1a202c;
+  --bg-secondary: #2d3748;
+  --bg-tertiary: #1a202c;
+  --text-primary: #e2e8f0;
+  --text-secondary: #cbd5e0;
+  --text-tertiary: #a0aec0;
+  --accent-primary: #667eea;
+  --accent-secondary: #764ba2;
+  --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --border-color: #4a5568;
+  --hover-bg: #374151;
+  --success-color: #48bb78;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+}
+
+/* グリーンテーマ(Excel風の落ち着いた緑) */
+[data-theme="green"] {
+  --bg-primary: #f4f6f4;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e6f2e6;
+  --text-primary: #1a3a1a;
+  --text-secondary: #2d5a2d;
+  --text-tertiary: #4a7c4a;
+  --accent-primary: #2e7d32;
+  --accent-secondary: #1b5e20;
+  --accent-gradient: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+  --border-color: #c5e1a5;
+  --hover-bg: #e8f5e9;
+  --success-color: #43a047;
+  --danger-color: #d32f2f;
+  --warning-color: #f57c00;
+}
+
+/* =============================================================================
+  基本レイアウト
+   ============================================================================= */
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* =============================================================================
+  ヘッダー
+   ============================================================================= */
+.header {
+  background: var(--bg-secondary);
+  padding: 20px 30px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 4px solid var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-size: 0.938rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* コイン表示 */
+.coin-info {
+  background: var(--accent-gradient);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.938rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coin-info:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.coin-info img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+#header-coin-count {
+  font-size: 1.125rem;
+}
+
+.user-info {
+  color: var(--text-secondary);
+  font-size: 0.938rem;
+}
+
+.btn-logout {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.btn-logout:hover {
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+}
+
+/* =============================================================================
+  設定メニュー
+   ============================================================================= */
+.settings-wrapper {
+  position: relative;
+}
+
+.settings-trigger {
+  color: var(--text-tertiary);
+  font-size: 0.938rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.settings-trigger:hover {
+  color: var(--text-primary);
+}
+
+.settings-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  min-width: 250px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.settings-wrapper:hover .settings-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.settings-menu-title {
+  padding: 12px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.theme-option {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+
+.theme-option.active {
+  background: var(--accent-primary);
+  color: white;
+}
+
+:root .theme-option[data-theme="dark"]:not(.active),
+[data-theme="green"] .theme-option[data-theme="dark"]:not(.active) {
+  color: #1a202c;
+}
+
+/* ダークテーマ時のライトグリーン項目を白文字に */
+[data-theme="dark"] .theme-option[data-theme="green"]:not(.active) {
+  color: #e2e8f0;
+}
+
+.theme-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.theme-color.blue { background: linear-gradient(135deg, #3182ce, #2c5282); }
+.theme-color.dark { background: linear-gradient(135deg, #667eea, #764ba2); }
+.theme-color.green { background: linear-gradient(135deg, #2e7d32, #1b5e20); }
+
+/* =============================================================================
+  カード
+   ============================================================================= */
+.card {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-left: 4px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+
+/* =============================================================================
+  ボタン
+   ============================================================================= */
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.938rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-primary {
+  background: var(--accent-gradient);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.btn-success {
+  background: var(--success-color);
+  color: white;
+}
+
+.btn-success:hover {
+  opacity: 0.9;
+}
+
+.btn-danger {
+  background: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.btn-warning {
+  background: var(--warning-color);
+  color: white;
+}
+
+.btn-warning:hover {
+  opacity: 0.9;
+}
+
+.btn-light {
+  background: var(--text-tertiary);
+  color: white;
+}
+
+.btn-light:hover {
+  opacity: 0.9;
+}
+
+.btn-small {
+  padding: 8px 14px;
+  font-size: 0.813rem;
+}
+
+/* =============================================================================
+  バッジ
+   ============================================================================= */
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.813rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: var(--success-color);
+  color: white;
+}
+
+.badge-danger {
+  background: var(--danger-color);
+  color: white;
+}
+
+/* =============================================================================
+  フォーム
+   ============================================================================= */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.938rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.form-actions .btn {
+  margin-bottom: 0;
+}
+
+/* =============================================================================
+  ユーティリティクラス
+   ============================================================================= */
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* =============================================================================
+  レスポンシブ対応
+   ============================================================================= */
+@media (max-width: 768px) {
+  body {
+    padding: 8px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .header-left,
+  .header-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-left {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .header-right {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  /* コイン表示のモバイル対応 */
+  .coin-info {
+    font-size: 0.813rem;
+    padding: 6px 12px;
+  }
+  
+  .coin-info img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  #header-coin-count {
+    font-size: 1rem;
+  }
+
+  .logo {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .nav-link {
+    font-size: 0.813rem;
+  }
+
+  .coin-info img{
+  width: 24px;
+  height: 24px;
+}
+
+  .user-info {
+    font-size: 0.813rem;
+  }
+
+  .btn-logout {
+    font-size: 0.813rem;
+    padding: 6px 12px;
+  }
+
+  /* 設定メニュー */
+  .settings-menu {
+    max-width: 90vw;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+  }
+
+  .settings-wrapper:hover .settings-menu {
+    transform: translateX(-50%);
+  }
+
+  .theme-option {
+    font-size: 0.875rem;
+    padding: 10px 12px;
+  }
+
+  /* カード */
+  .card {
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+
+  /* ボタン */
+  .btn {
+    font-size: 0.875rem;
+    padding: 10px 16px;
+  }
+
+  .btn-small {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+
+  /* バッジ */
+  .badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+
+  /* フォーム */
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-label {
+    font-size: 0.813rem;
+    margin-bottom: 6px;
+  }
+
+  .form-input,
+  .form-select {
+    font-size: 0.875rem;
+    padding: 10px 12px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}

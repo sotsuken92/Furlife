@@ -1,0 +1,718 @@
+/* =============================================================================
+  レベルアップモーダル
+   ============================================================================= */
+
+.levelup-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10003;
+  animation: fadeIn 0.3s ease;
+}
+
+.levelup-modal.active {
+  display: flex;
+}
+
+.levelup-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+.levelup-content {
+  position: relative;
+  background: var(--bg-secondary);
+  padding: 60px 80px;
+  max-width: 600px;
+  width: 90%;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  text-align: center;
+  animation: levelupSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 3px solid var(--accent-primary);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes levelupSlideIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.levelup-title {
+  font-size: 3rem;
+  font-weight: 900;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 30px;
+  letter-spacing: 2px;
+  animation: titlePulse 1s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.levelup-sparkles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.sparkle {
+  display: none;
+}
+
+@keyframes sparkleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(100%) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0%) scale(0);
+  }
+}
+
+.levelup-level-change {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.level-from, .level-to {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 10px 20px;
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  font-size: 1.8rem;
+}
+
+.level-to {
+  background: var(--accent-gradient);
+  color: white;
+  animation: levelToBounce 0.6s ease-in-out;
+}
+
+@keyframes levelToBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.level-arrow {
+  font-size: 2rem;
+  color: var(--accent-primary);
+  animation: arrowSlide 1s ease-in-out infinite;
+}
+
+@keyframes arrowSlide {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.levelup-pet-container {
+  margin: 40px 0;
+  position: relative;
+}
+
+.levelup-pet-image {
+  max-width: 250px;
+  width: 100%;
+  height: 250px;
+  object-fit: contain;
+  margin: 0 auto;
+  display: block;
+  animation: petZoomIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes petZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.levelup-pet-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  animation: glowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.levelup-message {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.levelup-evolution-type {
+  display: inline-block;
+  background: var(--accent-gradient);
+  color: white;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 20px 0;
+  animation: evolutionBadgeBounce 0.8s ease-in-out;
+}
+
+@keyframes evolutionBadgeBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25%, 75% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.levelup-rarity {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 20px 0;
+  animation: rarityAppear 1s ease-in-out;
+}
+
+@keyframes rarityAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.levelup-rarity .rarity-star {
+  font-size: 2rem;
+  color: #fbbf24;
+  text-shadow: 
+    0 0 10px rgba(251, 191, 36, 0.8),
+    0 0 20px rgba(251, 191, 36, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+  animation: starTwinkle 1.5s ease-in-out infinite;
+  animation-delay: calc(var(--star-index) * 0.2s);
+}
+
+.levelup-rarity .rarity-star:nth-child(1) { --star-index: 0; }
+.levelup-rarity .rarity-star:nth-child(2) { --star-index: 1; }
+.levelup-rarity .rarity-star:nth-child(3) { --star-index: 2; }
+.levelup-rarity .rarity-star:nth-child(4) { --star-index: 3; }
+.levelup-rarity .rarity-star:nth-child(5) { --star-index: 4; }
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2) rotate(10deg);
+  }
+}
+
+/* レアリティ別の星の色 */
+.levelup-rarity[data-rarity="5"] .rarity-star {
+  color: #dc2626;
+  text-shadow: 
+    0 0 15px rgba(220, 38, 38, 0.8),
+    0 0 30px rgba(220, 38, 38, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.levelup-rarity[data-rarity="4"] .rarity-star {
+  color: #a855f7;
+  text-shadow: 
+    0 0 15px rgba(168, 85, 247, 0.8),
+    0 0 30px rgba(168, 85, 247, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.levelup-rarity[data-rarity="3"] .rarity-star {
+  color: #3b82f6;
+  text-shadow: 
+    0 0 15px rgba(59, 130, 246, 0.8),
+    0 0 30px rgba(59, 130, 246, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.levelup-rarity[data-rarity="2"] .rarity-star {
+  color: #10b981;
+  text-shadow: 
+    0 0 15px rgba(16, 185, 129, 0.8),
+    0 0 30px rgba(16, 185, 129, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.levelup-close-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent-gradient);
+  border: none;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s;
+  margin-top: 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.levelup-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 紙吹雪エフェクト */
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  animation: confettiFall 3s ease-in-out infinite;
+}
+
+@keyframes confettiFall {
+  0% {
+    opacity: 1;
+    transform: translateY(-100%) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
+/* 最終進化の特別演出 */
+.levelup-content.final-evolution {
+  border: 3px solid #fbbf24;
+  box-shadow: 0 20px 60px rgba(251, 191, 36, 0.5);
+  animation: finalEvolutionPulse 2s ease-in-out infinite;
+}
+
+@keyframes finalEvolutionPulse {
+  0%, 100% {
+    box-shadow: 0 20px 60px rgba(251, 191, 36, 0.5);
+  }
+  50% {
+    box-shadow: 0 20px 80px rgba(251, 191, 36, 0.8);
+  }
+}
+
+/* =============================================================================
+  コイン獲得モーダル
+   ============================================================================= */
+
+.coin-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10003;
+  animation: fadeIn 0.3s ease;
+}
+
+.coin-modal.active {
+  display: flex;
+}
+
+.coin-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+.coin-content {
+  position: relative;
+  background: var(--bg-secondary);
+  padding: 60px 80px;
+  max-width: 550px;
+  width: 90%;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  text-align: center;
+  animation: coinSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 3px solid #fbbf24;
+}
+
+@keyframes coinSlideIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.coin-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 30px;
+  letter-spacing: 2px;
+  animation: titlePulse 1s ease-in-out infinite;
+}
+
+.coin-sparkles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.coin-icon-container {
+  margin: 30px 0;
+  position: relative;
+}
+
+.coin-icon {
+  font-size: 8rem;
+  animation: coinRotate 2s ease-in-out infinite;
+  display: inline-block;
+  filter: drop-shadow(0 10px 30px rgba(251, 191, 36, 0.5));
+}
+
+@keyframes coinRotate {
+  0%, 100% {
+    transform: rotateY(0deg) scale(1);
+  }
+  25% {
+    transform: rotateY(90deg) scale(1.1);
+  }
+  50% {
+    transform: rotateY(180deg) scale(1);
+  }
+  75% {
+    transform: rotateY(270deg) scale(1.1);
+  }
+}
+
+.coin-icon-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.4) 0%, transparent 70%);
+  animation: coinGlowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes coinGlowPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.8;
+  }
+}
+
+.coin-amount {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #fbbf24;
+  margin: 20px 0;
+  text-shadow: 
+    0 0 20px rgba(251, 191, 36, 0.8),
+    0 0 40px rgba(251, 191, 36, 0.5),
+    3px 3px 6px rgba(0, 0, 0, 0.5);
+  animation: coinAmountBounce 0.8s ease-in-out;
+}
+
+@keyframes coinAmountBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25%, 75% {
+    transform: scale(1.15);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+.coin-message {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.coin-total {
+  display: inline-block;
+  background: var(--bg-tertiary);
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 20px 0;
+}
+
+.coin-total-amount {
+  color: #fbbf24;
+  font-size: 1.3rem;
+}
+
+.coin-close-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border: none;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.3s;
+  margin-top: 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.coin-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(251, 191, 36, 0.5);
+}
+
+/* コイン紙吹雪エフェクト */
+.coin-confetti {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: coinConfettiFall 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes coinConfettiFall {
+  0% {
+    opacity: 1;
+    transform: translateY(-100%) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
+/* =============================================================================
+  レスポンシブ対応
+   ============================================================================= */
+@media (max-width: 768px) {
+  .levelup-content {
+    padding: 40px 30px;
+    width: 95%;
+    max-width: 95%;
+  }
+
+  .levelup-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .levelup-level-change {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+
+  .level-from, .level-to {
+    min-width: 60px;
+    padding: 8px 16px;
+    font-size: 1.5rem;
+  }
+
+  .level-arrow {
+    font-size: 1.5rem;
+  }
+
+  .levelup-pet-container {
+    margin: 30px 0;
+  }
+
+  .levelup-pet-image {
+    max-width: 200px;
+    height: 200px;
+  }
+
+  .levelup-pet-glow {
+    width: 240px;
+    height: 240px;
+  }
+
+  .levelup-message {
+    font-size: 1.125rem;
+    margin-bottom: 16px;
+  }
+
+  .levelup-evolution-type {
+    font-size: 1rem;
+    padding: 10px 24px;
+    margin: 16px 0;
+  }
+
+  .levelup-rarity {
+    margin: 16px 0;
+    gap: 4px;
+  }
+
+  .levelup-rarity .rarity-star {
+    font-size: 1.5rem;
+  }
+
+  .levelup-close-btn {
+    font-size: 1rem;
+    padding: 14px;
+  }
+
+  /* コインモーダルのレスポンシブ */
+  .coin-content {
+    padding: 40px 30px;
+    width: 95%;
+    max-width: 95%;
+  }
+
+  .coin-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .coin-icon-container {
+    margin: 20px 0;
+  }
+
+  .coin-icon {
+    font-size: 6rem;
+  }
+
+  .coin-icon-glow {
+    width: 200px;
+    height: 200px;
+  }
+
+  .coin-amount {
+    font-size: 2.5rem;
+    margin: 16px 0;
+  }
+
+  .coin-message {
+    font-size: 1.125rem;
+    margin-bottom: 16px;
+  }
+
+  .coin-total {
+    font-size: 1rem;
+    padding: 10px 20px;
+    margin: 16px 0;
+  }
+
+  .coin-total-amount {
+    font-size: 1.2rem;
+  }
+
+  .coin-close-btn {
+    font-size: 1rem;
+    padding: 14px;
+  }
+}

@@ -1,0 +1,497 @@
+/* =============================================================================
+  ショップページ
+   ============================================================================= */
+
+.shop-title {
+  background: var(--accent-gradient);
+  padding: 32px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.shop-title h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* =============================================================================
+  ペットカード
+   ============================================================================= */
+
+.pet-card {
+  background: var(--accent-gradient);
+  padding: 24px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.pet-level {
+  background: rgba(255,255,255,0.2);
+  padding: 8px 16px;
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 0.938rem;
+}
+
+.pet-name-input {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 2px solid transparent;
+  color: white;
+  font-size: 1.125rem;
+  margin-bottom: 12px;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.pet-name-input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+
+.pet-name-input:focus {
+  outline: none;
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.pet-image {
+  max-width: 140px;
+  height: auto;
+  margin: 12px auto;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.pet-image:hover {
+  transform: scale(1.05);
+}
+
+/* 経験値バー */
+.exp-bar-container {
+  margin: 16px 0;
+}
+
+.exp-bar-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.813rem;
+  font-weight: 600;
+}
+
+.exp-bar-bg {
+  width: 100%;
+  height: 20px;
+  background: rgba(0,0,0,0.2);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.exp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.95));
+  transition: width 0.5s ease-out;
+  border-radius: 8px;
+}
+
+.pet-message {
+  font-size: 0.875rem;
+  margin: 16px 0;
+  min-height: 40px;
+}
+
+/* コイン表示 */
+.coin-display {
+  background: rgba(255,255,255,0.15);
+  padding: 16px;
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 1.25rem;
+  border-radius: 8px;
+}
+
+/* インベントリカード */
+.inventory-card {
+  background: rgba(255,255,255,0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.inventory-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.inventory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.1);
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+/* 餌の画像サイズ制限 */
+.food-emoji {
+  width: 1.8rem;
+  height: 1.8rem;
+  object-fit: contain;
+}
+
+.food-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.938rem;
+}
+
+.food-count {
+  font-weight: 700;
+  font-size: 1.125rem;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* 餌やりセクション */
+#feeding-area {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.feed-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feed-btn {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.938rem;
+  border-radius: 6px;
+}
+
+.feed-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: translateY(-1px);
+}
+
+.feed-btn:active {
+  transform: translateY(0);
+}
+
+/* =============================================================================
+  ショップカード
+   ============================================================================= */
+
+.shop-card {
+  background: var(--bg-secondary);
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-radius: 8px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.shop-items {
+  display: grid;
+  gap: 16px;
+}
+
+.shop-item {
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.shop-item:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.shop-item-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.shop-item-emoji {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+}
+
+.shop-item-info {
+  flex: 1;
+}
+
+.shop-item-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.shop-item-details {
+  display: flex;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.shop-item-price {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.shop-item-exp {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.buy-btn {
+  padding: 12px 24px;
+  background: var(--accent-gradient);
+  border: none;
+  color: white;
+  font-weight: 700;
+  font-size: 0.938rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.buy-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.buy-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.buy-btn:disabled {
+  background: var(--text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* =============================================================================
+  レスポンシブ
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pet-card {
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* タイトル */
+  .shop-title {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .shop-title h1 {
+    font-size: 1.5rem;
+  }
+
+  /* ペットカード */
+  .pet-card {
+    padding: 16px;
+  }
+
+  .pet-level {
+    font-size: 0.875rem;
+    padding: 6px 12px;
+  }
+
+  .pet-name-input {
+    font-size: 1rem;
+    padding: 8px;
+  }
+
+  .pet-image {
+    max-width: 120px;
+  }
+
+  .pet-message {
+    font-size: 0.813rem;
+    min-height: 30px;
+  }
+
+  /* 経験値バー */
+  .exp-bar-label {
+    font-size: 0.75rem;
+  }
+
+  .exp-bar-bg {
+    height: 18px;
+  }
+
+  /* コイン表示 */
+  .coin-display {
+    font-size: 1.125rem;
+    padding: 12px;
+  }
+
+  /* インベントリカード */
+  .inventory-card {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .inventory-title {
+    font-size: 0.938rem;
+    margin-bottom: 10px;
+  }
+
+  .inventory-list {
+    gap: 6px;
+  }
+
+  .inventory-item {
+    padding: 8px 10px;
+  }
+
+  .food-emoji {
+    font-size: 1.25rem;
+  }
+
+  .food-name {
+    font-size: 0.875rem;
+  }
+
+  .food-count {
+    font-size: 1rem;
+  }
+
+  /* 餌やりセクション */
+  #feeding-area {
+    margin-top: 12px;
+  }
+
+  .section-title {
+    font-size: 0.938rem;
+    margin-bottom: 10px;
+  }
+
+  .feed-buttons {
+    gap: 6px;
+  }
+
+  .feed-btn {
+    font-size: 0.875rem;
+    padding: 10px;
+  }
+
+  /* ショップカード */
+  .shop-card {
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+  }
+
+  .shop-items {
+    gap: 12px;
+  }
+
+  .shop-item {
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .shop-item-header {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .shop-item-emoji {
+    font-size: 2rem;
+  }
+
+  .shop-item-name {
+    font-size: 1rem;
+  }
+
+  .shop-item-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 0.813rem;
+  }
+
+  .buy-btn {
+    width: 100%;
+    font-size: 0.875rem;
+    padding: 10px 20px;
+  }
+}

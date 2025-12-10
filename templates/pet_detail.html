@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ペット詳細</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/pet_detail.css">
+  <link rel="stylesheet" href="/static/css/levelup-modal.css">
+  <!-- PWA用メタタグ -->
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Furlife">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+</head>
+
+
+
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo"> Furlife</div>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">カレンダー</a>
+        <a href="/pet" class="nav-link">ペット詳細</a>
+        <a href="/shop" class="nav-link">ショップ</a>
+        <div class="settings-wrapper">
+          <div class="settings-trigger">設定 ▾</div>
+          <div class="settings-menu">
+            <div class="settings-menu-title">テーマを選択</div>
+            <div class="theme-option" data-theme="blue">
+              <div class="theme-color blue"></div>
+              <span>ライトブルー</span>
+            </div>
+            <div class="theme-option" data-theme="green">
+              <div class="theme-color green"></div>
+              <span>ライトグリーン</span>
+            </div>
+            <div class="theme-option" data-theme="dark">
+              <div class="theme-color dark"></div>
+              <span>ダークモード</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="coin-info">💰 <span id="header-coin-count">{{ pet.coins }}</span></span>
+      <span class="user-info">{{ username }}さん</span>
+      <a href="/logout" class="btn-logout">ログアウト</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="main-grid">
+      
+      <!-- 左側: ペット詳細 -->
+      <div class="card">
+        <h1 class="card-title"> ペット詳細</h1>
+
+        <div id="pet-name-display" class="pet-name-display">名前未設定</div>
+
+        <img id="pet-img-large" src="/static/images/{{ image }}" alt="ペットの画像" class="pet-image-large" />
+
+        <!-- 経験値バー -->
+        {% if pet.alive and pet.started %}
+        <div class="exp-bar-container">
+          <div class="exp-bar-label">
+            <span>経験値</span>
+            <span id="exp-display">{{ pet.exp }} / {{ exp_table[pet.level] if pet.level in exp_table else 0 }}</span>
+          </div>
+          <div class="exp-bar-bg">
+            <div id="exp-bar-fill" class="exp-bar-fill" style="width: {% if pet.level in exp_table and exp_table[pet.level] > 0 %}{{ (pet.exp / exp_table[pet.level] * 100) | round }}{% else %}0{% endif %}%;"></div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="pet-message-box">
+          <p id="pet-message">{{ pet.message }}</p>
+        </div>
+
+        <!-- ステータステーブル -->
+        <div class="status-table">
+          <div class="status-row">
+            <span class="status-label">ステータス</span>
+            <span class="status-value">
+              {% if pet.alive %}
+                <span class="badge-success">✓ 元気</span>
+              {% else %}
+                <span class="badge-danger">✗ 死亡</span>
+              {% endif %}
+            </span>
+          </div>
+
+          {% if pet.alive or pet.started %}
+          <div class="status-row">
+            <span class="status-label">レベル</span>
+            <span class="status-value">
+              <span class="level-badge">Lv.{{ pet.level }}</span>
+              {% if (pet.pet_type == 1 and pet.level == 10) or (pet.pet_type != 1 and pet.level == 5) %}
+                <span class="evolution-badge">タイプ{{ pet.evolution }}</span>
+              {% endif %}
+            </span>
+          </div>
+          {% endif %}
+          <!-- 所持している餌 -->
+          
+          <div class="status-row inventory-row">
+            <span class="status-label">所持餌</span>
+            <span class="status-value inventory-compact">
+              <span class="compact-food-item selectable" data-food="基本の餌" data-exp="1">
+                <img src="/static/images/food/基本の餌.jpg" alt="基本の餌" class="food-emoji">
+                <span class="food-count" id="inventory-basic">{{ pet.inventory.get('基本の餌', 0) }}</span>
+                <span class="food-name-mini">★</span>
+              </span>
+              <span class="compact-food-item selectable" data-food="おいしい餌" data-exp="3">
+                <img src="/static/images/food/おいしい餌.jpg" alt="おいしい餌" class="food-emoji">
+                <span class="food-count" id="inventory-tasty">{{ pet.inventory.get('おいしい餌', 0) }}</span>
+                <span class="food-name-mini">★★</span>
+              </span>
+              <span class="compact-food-item selectable" data-food="プレミアム餌" data-exp="5">
+                <img src="/static/images/food/プレミアム餌.jpg" alt="プレミアム餌" class="food-emoji">
+                <span class="food-count" id="inventory-premium">{{ pet.inventory.get('プレミアム餌', 0) }}</span>
+                <span class="food-name-mini">★★★</span>
+              </span>
+              <span class="compact-food-item selectable" data-food="スペシャル餌" data-exp="10">
+                <img src="/static/images/food/スペシャル餌.jpg" alt="スペシャル餌" class="food-emoji">
+                <span class="food-count" id="inventory-basic">{{ pet.inventory.get('スペシャル餌', 0) }}</span>
+                <span class="food-name-mini">★★★★</span>
+              </span>
+            </span>
+          </div>
+          
+        </div>
+
+        <!-- 餌やりセクション -->
+        <button class="selected-food-display" id="selectedFoodDisplay">
+          <img src="/static/images/food/基本の餌.jpg" alt="基本の餌" id="selectedEmoji" class="selected-emoji">
+          <div class="selected-info">
+            <span class="selected-name" id="selectedName">基本の餌</span>
+            <span class="selected-exp" id="selectedExp">+1 EXP</span>
+          </div>
+        </button>
+        
+
+        <!-- ボタン -->
+        {% if not pet.started %}
+          <button id="start-btn" class="btn btn-primary">育成開始</button>
+        {% elif not pet.alive %}
+          <button id="revive-btn" class="btn btn-warning">卵から育て直す</button>
+        {% else %}
+          <button id="revive-btn-alive" class="btn btn-warning">育て直す</button>
+        {% endif %}
+
+        <a href="/" style="text-decoration: none;">
+          <button class="btn btn-light">← カレンダーに戻る</button>
+        </a>
+      </div>
+
+      <!-- 右側: 図鑑 -->
+      <div class="card pokedex-card">
+        <h2 class="card-title"> ペット図鑑</h2>
+        
+        <div class="text-center">
+          <span class="completion-badge">
+            コンプリート: <span id="completion-count">{{ all_pets | selectattr('discovered') | list | length }}</span> / 70
+          </span>
+        </div>
+
+        <!-- 図鑑セクション(系統ごと) -->
+        <div class="pokedex-sections">
+          {% set ns = namespace(counter=0) %}
+          {% for type_id in range(1, 7) %}
+            <div class="pokedex-section">
+              <h3 class="pokedex-section-title">{{ pet_types[type_id].name }}</h3>
+              <div class="pokedex-grid">
+                {% for pet_data in all_pets %}
+                  {% if pet_data.pet_type == type_id %}
+                    {% set ns.counter = ns.counter + 1 %}
+                    <div class="pokedex-item {% if pet_data.discovered %}discovered{% else %}locked{% endif %}" 
+                        data-image="{{ pet_data.image }}"
+                        data-name="{{ pet_data.name }}"
+                        data-discovered="{{ pet_data.discovered }}"
+                        data-育成-count="{{ pet_data.育成_count }}"
+                        data-rarity="{{ pet_data.rarity }}">
+                      
+                      <div class="pokedex-number">No.{{ ns.counter }}</div>
+                      
+                      <!-- レアリティ星表示 -->
+                      {% if pet_data.discovered and pet_data.rarity %}
+                        <div class="pokedex-rarity">
+                          {% for i in range(pet_data.rarity) %}
+                            <span class="rarity-star">★</span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                      
+                      {% if pet_data.discovered %}
+                        <img src="/static/images/{{ pet_data.image }}" alt="{{ pet_data.name }}" class="pokedex-img">
+                        <div class="pokedex-name">{{ pet_data.name }}</div>
+                        <div class="pokedex-育成-count">育成回数: {{ pet_data.育成_count }}回</div>
+                      {% else %}
+                        <div class="question-mark">?</div>
+                        <div class="pokedex-name">???</div>
+                        <div class="pokedex-育成-count">育成回数: -</div>
+                      {% endif %}
+                      
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- モーダル -->
+  
+  <!-- レベルアップモーダル -->
+  <div class="levelup-modal" id="levelupModal">
+    <div class="levelup-backdrop"></div>
+    <div class="levelup-content" id="levelupContent">
+      <div class="levelup-sparkles" id="levelupSparkles"></div>
+      <div class="levelup-title">LEVEL UP!</div>
+      <div class="levelup-level-change">
+        <span class="level-from" id="levelupLevelFrom">Lv.0</span>
+        <span class="level-arrow">→</span>
+        <span class="level-to" id="levelupLevelTo">Lv.1</span>
+      </div>
+      <div class="levelup-pet-container">
+        <div class="levelup-pet-glow"></div>
+        <img id="levelupPetImage" src="" alt="ペット" class="levelup-pet-image">
+      </div>
+      <div class="levelup-message" id="levelupMessage">おめでとう!</div>
+      <div class="levelup-evolution-type" id="levelupEvolutionType" style="display: none;">タイプ1に進化!</div>
+      <div class="levelup-rarity" id="levelupRarity" style="display: none;"></div>
+      <button class="levelup-close-btn" id="levelupCloseBtn">図鑑で確認する</button>
+    </div>
+  </div>
+
+  <!-- ペット詳細モーダル -->
+  <div class="pet-detail-modal" id="petDetailModal">
+    <div class="pet-detail-backdrop"></div>
+    <div class="pet-detail-content">
+      <button class="pet-detail-close" id="closePetDetailBtn">✕</button>
+      <img id="modalPetImage" src="" alt="ペット" class="modal-pet-image">
+      <div id="modalPetRarity" class="modal-pet-rarity"></div>
+      <h2 id="modalPetName" class="modal-pet-name"></h2>
+      <div id="modalPetType" class="modal-pet-type"></div>
+      <p id="modalPetDescription" class="modal-pet-description"></p>
+      <div id="modalPet育成Count" class="modal-pet-育成-count"></div>
+      <div id="modalPetNumber" class="modal-pet-number"></div>
+    </div>
+  </div>
+
+  <!-- ペット選択モーダル -->
+  <div class="pet-select-modal" id="petSelectModal">
+    <div class="pet-select-content">
+      <h2 class="pet-select-title">育てるペットを選んでください</h2>
+      <div class="pet-select-grid">
+        {% for type_id, type_info in pet_types.items() %}
+          <div class="pet-select-item" data-pet-type="{{ type_id }}">
+            <img src="/static/images/pet{{ type_id }}/egg.jpg" alt="{{ type_info.name }}" class="pet-select-image">
+            <div class="pet-select-name">{{ type_info.name }}</div>
+            <div class="pet-select-desc">{{ type_info.description }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/pet_detail.js"></script>
+
+  <script>
+  // Service Worker登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/js/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker登録成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker登録失敗:', error);
+        });
+    });
+  }
+  </script>
+
+</body>
+</html>

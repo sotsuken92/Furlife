@@ -1,0 +1,1362 @@
+/* =============================================================================
+  レイアウト
+   ============================================================================= */
+.main-grid {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.main-grid > .card {
+  height: 100%;
+}
+
+/* =============================================================================
+  ペット詳細(左側)
+   ============================================================================= */
+.pet-name-display {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.pet-image-large {
+  width: 300px;
+  width: 100%;
+  height: 300px;
+  display: block;
+  margin: 0 auto 24px;
+  background: var(--bg-tertiary);
+  padding: 20px;
+  object-fit: contain
+}
+
+.pet-message-box {
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--accent-primary);
+  padding: 16px;
+  margin-bottom: 24px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.938rem;
+}
+
+/* =============================================================================
+  ステータステーブル
+   ============================================================================= */
+.status-table {
+  background: var(--bg-tertiary);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.938rem;
+}
+
+.status-row:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.status-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.level-badge {
+  background: var(--accent-gradient);
+  color: white;
+  padding: 6px 14px;
+  font-weight: 600;
+  display: inline-block;
+  font-size: 0.875rem;
+}
+
+.evolution-badge {
+  background: var(--success-color);
+  color: white;
+  padding: 6px 14px;
+  font-weight: 600;
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.875rem;
+}
+
+.badge-success {
+  background: var(--success-color);
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.813rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-danger {
+  background: var(--danger-color);
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.813rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* =============================================================================
+  ボタン
+   ============================================================================= */
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.938rem;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 12px;
+}
+
+.btn-primary {
+  background: var(--accent-gradient);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.btn-success {
+  background: var(--success-color);
+  color: white;
+}
+
+.btn-success:hover {
+  opacity: 0.9;
+}
+
+.btn-warning {
+  background: var(--warning-color);
+  color: white;
+}
+
+.btn-warning:hover {
+  opacity: 0.9;
+}
+
+.btn-light {
+  background: var(--text-tertiary);
+  color: white;
+}
+
+.btn-light:hover {
+  opacity: 0.9;
+}
+
+/* =============================================================================
+  図鑑(右側)
+   ============================================================================= */
+.pokedex-card {
+  border-left: 4px solid var(--accent-primary);
+  display: flex;
+  flex-direction: column;
+  height: 1200px;
+  max-height: 1200px;
+}
+
+.pokedex-card .card-title {
+  flex-shrink: 0;
+}
+
+.pokedex-card .text-center {
+  flex-shrink: 0;
+}
+
+.completion-badge {
+  background: var(--accent-gradient);
+  color: white;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+
+.pokedex-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 8px;
+}
+
+.pokedex-section {
+  border-top: 2px solid var(--border-color);
+  padding-top: 20px;
+}
+
+.pokedex-sections::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pokedex-sections::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.pokedex-sections::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 4px;
+}
+
+.pokedex-sections::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+}
+
+.pokedex-section:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.pokedex-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 16px;
+  padding-left: 8px;
+  border-left: 4px solid var(--accent-primary);
+}
+
+.pokedex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 16px;
+}
+
+.pokedex-item {
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  padding: 16px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.pokedex-item.discovered {
+  border-color: var(--accent-primary);
+}
+
+.pokedex-item.discovered:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  background: var(--hover-bg);
+}
+
+.pokedex-item.locked {
+  opacity: 0.4;
+}
+
+.pokedex-img {
+  width: 100%;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.pokedex-img.locked {
+  filter: brightness(0) opacity(0.3);
+}
+
+.pokedex-name {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  word-wrap: break-word;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pokedex-number {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 0.625rem;
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.pokedex-育成-count {
+  font-size: 0.688rem;
+  color: var(--accent-primary);
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.question-mark {
+  font-size: 2.5rem;
+  color: var(--text-tertiary);
+  line-height: 80px;
+}
+
+/* ハイライトアニメーション */
+@keyframes highlight {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(14, 165, 233, 0);
+  }
+  25% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.6);
+  }
+  50% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+  }
+  75% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.6);
+  }
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+/* =============================================================================
+  ペット詳細モーダル
+   ============================================================================= */
+.pet-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10002;
+}
+
+.pet-detail-modal.active {
+  display: flex;
+}
+
+.pet-detail-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+}
+
+.pet-detail-content {
+  position: relative;
+  background: var(--bg-secondary);
+  padding: 48px;
+  max-width: 600px;
+  width: 90%;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  z-index: 1;
+  animation: modalSlideIn 0.3s ease;
+  text-align: center;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pet-detail-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--danger-color);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pet-detail-close:hover {
+  background: #c53030;
+  transform: rotate(90deg);
+}
+
+.modal-pet-image {
+  max-width: 300px;
+  width: 100%;
+  height: auto;
+  margin: 0 auto 24px;
+  display: block;
+}
+
+.modal-pet-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 12px;
+}
+
+.modal-pet-type {
+  display: inline-block;
+  background: var(--accent-gradient);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.modal-pet-description {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.modal-pet-育成-count {
+  font-size: 0.938rem;
+  color: var(--accent-primary);
+  font-weight: 700;
+  margin-bottom: 12px;
+  background: var(--bg-tertiary);
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.modal-pet-number {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+/* =============================================================================
+  ペット選択モーダル
+   ============================================================================= */
+.pet-select-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.pet-select-modal.active {
+  display: flex;
+}
+
+.pet-select-content {
+  background: var(--bg-secondary);
+  padding: 40px;
+  max-width: 800px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  border-radius: 12px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.pet-select-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.pet-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 20px;
+}
+
+.pet-select-item {
+  background: var(--bg-tertiary);
+  border: 3px solid var(--border-color);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 8px;
+}
+
+.pet-select-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  border-color: var(--accent-primary);
+}
+
+.pet-select-image {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.pet-select-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.pet-select-desc {
+  font-size: 0.813rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* =============================================================================
+  レアリティ星表示
+   ============================================================================= */
+
+.pokedex-rarity {
+  position: absolute;
+  top: 5px;
+  right: 4px;
+  display: flex;
+  gap: 1px;
+  z-index: 10;
+}
+
+.rarity-star {
+  font-size: 0.75rem;
+  color: #fbbf24; /* 金色 */
+  text-shadow: 
+    0 0 2px rgba(251, 191, 36, 0.8),
+    0 0 4px rgba(251, 191, 36, 0.6),
+    1px 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1;
+  animation: twinkle 2s ease-in-out infinite;
+  animation-delay: calc(var(--star-index, 0) * 0.2s);
+}
+
+/* 星の個別アニメーション遅延 */
+.rarity-star:nth-child(1) { --star-index: 0; }
+.rarity-star:nth-child(2) { --star-index: 1; }
+.rarity-star:nth-child(3) { --star-index: 2; }
+.rarity-star:nth-child(4) { --star-index: 3; }
+.rarity-star:nth-child(5) { --star-index: 4; }
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* レアリティ別の色分け（オプション） */
+.pokedex-item[data-rarity="5"] .rarity-star {
+  color: #dc2626; /* 赤 - 超激レア */
+  text-shadow: 
+    0 0 3px rgba(220, 38, 38, 0.8),
+    0 0 6px rgba(220, 38, 38, 0.6),
+    1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.pokedex-item[data-rarity="4"] .rarity-star {
+  color: #a855f7; /* 紫 - 激レア */
+  text-shadow: 
+    0 0 3px rgba(168, 85, 247, 0.8),
+    0 0 6px rgba(168, 85, 247, 0.6),
+    1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.pokedex-item[data-rarity="3"] .rarity-star {
+  color: #3b82f6; /* 青 - レア */
+  text-shadow: 
+    0 0 3px rgba(59, 130, 246, 0.8),
+    0 0 6px rgba(59, 130, 246, 0.6),
+    1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.pokedex-item[data-rarity="2"] .rarity-star {
+  color: #10b981; /* 緑 - アンコモン */
+  text-shadow: 
+    0 0 3px rgba(16, 185, 129, 0.8),
+    0 0 6px rgba(16, 185, 129, 0.6),
+    1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.pokedex-item[data-rarity="1"] .rarity-star {
+  color: #d1d5db; /* グレー - コモン */
+  text-shadow: 
+    0 0 2px rgba(209, 213, 219, 0.6),
+    1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* =============================================================================
+  モーダル内のレアリティ表示
+   ============================================================================= */
+
+.modal-pet-rarity {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.modal-pet-rarity .rarity-star {
+  font-size: 1.5rem;
+  color: #fbbf24;
+  text-shadow: 
+    0 0 4px rgba(251, 191, 36, 0.8),
+    0 0 8px rgba(251, 191, 36, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* モーダルのレアリティ別色分け */
+.modal-pet-rarity[data-rarity="5"] .rarity-star {
+  color: #dc2626;
+  text-shadow: 
+    0 0 6px rgba(220, 38, 38, 0.8),
+    0 0 12px rgba(220, 38, 38, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.modal-pet-rarity[data-rarity="4"] .rarity-star {
+  color: #a855f7;
+  text-shadow: 
+    0 0 6px rgba(168, 85, 247, 0.8),
+    0 0 12px rgba(168, 85, 247, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.modal-pet-rarity[data-rarity="3"] .rarity-star {
+  color: #3b82f6;
+  text-shadow: 
+    0 0 6px rgba(59, 130, 246, 0.8),
+    0 0 12px rgba(59, 130, 246, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.modal-pet-rarity[data-rarity="2"] .rarity-star {
+  color: #10b981;
+  text-shadow: 
+    0 0 6px rgba(16, 185, 129, 0.8),
+    0 0 12px rgba(16, 185, 129, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.modal-pet-rarity[data-rarity="1"] .rarity-star {
+  color: #d1d5db;
+  text-shadow: 
+    0 0 4px rgba(209, 213, 219, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.pet-image-large {
+  width: 300px;
+  width: 100%;
+  height: 300px;
+  display: block;
+  margin: 0 auto 16px;
+  background: var(--bg-tertiary);
+  padding: 20px;
+  object-fit: contain
+}
+
+/* =============================================================================
+  経験値バー
+   ============================================================================= */
+.exp-bar-container {
+  margin: 0 auto 24px;
+  max-width: 100%;
+}
+
+.exp-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+#exp-display {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.exp-bar-bg {
+  width: 100%;
+  height: 24px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.exp-bar-fill {
+  height: 100%;
+  background: var(--accent-gradient);
+  transition: width 0.5s ease-out;
+  border-radius: 10px;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.exp-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 既存のpet_detail.cssに以下を追加してください */
+
+/* =============================================================================
+   インベントリセクション
+   ============================================================================= */
+
+.inventory-section {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 餌の画像サイズ制限 */
+.food-emoji {
+  width: 1.8rem;
+  height: 1.8rem;
+  object-fit: contain;
+}
+
+.food-name {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.food-count {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  min-width: 30px;
+  text-align: right;
+}
+
+/* =============================================================================
+   餌やりセクション
+   ============================================================================= */
+
+.feeding-section {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feed-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.feed-btn-new {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 12px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-btn-new:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.feed-btn-new:active {
+  transform: translateY(0);
+}
+
+.feed-btn-new::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.feed-btn-new:hover::before {
+  left: 100%;
+}
+
+.feed-emoji {
+  font-size: 2rem;
+}
+
+.feed-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+}
+
+.feed-exp {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* 所持餌のコンパクト表示 */
+.inventory-row {
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.inventory-compact {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.compact-food-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  flex-direction: column;
+
+  width: 80px;   /* ← 好きな固定サイズに */
+  height: 100px;  /* ← 好きな固定サイズに */
+  box-sizing: border-box; /* パディングも含めてサイズ固定 */
+
+}
+
+.compact-food-item.selectable {
+  cursor: pointer;
+}
+
+.compact-food-item.selectable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent-primary);
+}
+
+.compact-food-item.selected {
+  border-color: var(--accent-primary);
+  background: var(--bg-tertiary);
+  box-shadow: 0 0 0 2px var(--accent-primary);
+}
+
+.compact-food-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.compact-food-item .food-emoji {
+  font-size: 1.5rem;
+}
+
+.compact-food-item .food-count {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.compact-food-item .food-name-mini {
+  font-size: 0.688rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* =============================================================================
+  レスポンシブ対応
+   ============================================================================= */
+@media (max-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .pokedex-card {
+    max-height: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* ペット詳細 */
+  .pet-name-display {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+  }
+
+  .pet-image-large {
+    height: 200px;
+    padding: 16px;
+  }
+
+  .pet-message-box {
+    font-size: 0.875rem;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* ステータステーブル */
+  .status-table {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .status-row {
+    padding: 12px 0;
+    font-size: 0.875rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .level-badge,
+  .evolution-badge {
+    font-size: 0.813rem;
+    padding: 4px 10px;
+  }
+
+  /* ボタン */
+  .btn {
+    font-size: 0.875rem;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* 図鑑 */
+  .pokedex-card {
+    max-height: 500px;
+  }
+
+  .completion-badge {
+    font-size: 0.938rem;
+    padding: 10px 20px;
+    margin-bottom: 16px;
+  }
+
+  .pokedex-section-title {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .pokedex-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .pokedex-item {
+    padding: 8px;
+  }
+
+  .pokedex-img {
+    height: 60px;
+    margin-bottom: 8px;
+  }
+
+  .pokedex-name {
+    font-size: 0.688rem;
+    min-height: 28px;
+  }
+
+  .pokedex-number {
+    font-size: 0.563rem;
+  }
+
+  .pokedex-育成-count {
+    font-size: 0.625rem;
+  }
+
+  .question-mark {
+    font-size: 2rem;
+    line-height: 60px;
+  }
+
+  /* レアリティ星 */
+  .pokedex-rarity {
+    top: 4px;
+    right: 2px;
+  }
+
+  .rarity-star {
+    font-size: 0.625rem;
+  }
+
+  /* ペット詳細モーダル */
+  .pet-detail-content {
+    padding: 32px 20px;
+    width: 95%;
+  }
+
+  .modal-pet-image {
+    max-width: 200px;
+  }
+
+  .modal-pet-name {
+    font-size: 1.5rem;
+  }
+
+  .modal-pet-type {
+    font-size: 0.813rem;
+    padding: 6px 16px;
+  }
+
+  .modal-pet-description {
+    font-size: 0.938rem;
+  }
+
+  .modal-pet-育成-count {
+    font-size: 0.875rem;
+  }
+
+  .modal-pet-rarity .rarity-star {
+    font-size: 1.25rem;
+  }
+
+  /* ペット選択モーダル */
+  .pet-select-content {
+    padding: 24px;
+    width: 95%;
+  }
+
+  .pet-select-title {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+  }
+
+  .pet-select-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .pet-select-item {
+    padding: 12px;
+  }
+
+  .pet-select-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .pet-select-name {
+    font-size: 0.875rem;
+  }
+
+  .pet-select-desc {
+    font-size: 0.75rem;
+  }
+
+  /* 経験値バー */
+  .exp-bar-label {
+    font-size: 0.813rem;
+  }
+
+  .exp-bar-bg {
+    height: 20px;
+  }
+
+  /* インベントリ */
+
+  .inventory-item {
+    padding: 10px;
+  }
+
+  .food-emoji {
+    font-size: 1.5rem;
+  }
+
+  .food-name {
+    font-size: 0.875rem;
+  }
+
+  .food-count {
+    font-size: 1rem;
+  }
+
+  /* 餌やりボタン */
+
+
+  .feed-emoji {
+    font-size: 1.8rem;
+  }
+
+  .feed-name {
+    font-size: 0.875rem;
+  }
+
+  .feed-exp {
+    font-size: 0.688rem;
+  }
+
+  /* 所持餌コンパクト表示 */
+  .inventory-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .inventory-compact {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .compact-food-item {
+    font-size: 0.813rem;
+    padding: 4px 8px;
+  }
+
+  .compact-food-item .food-emoji {
+    font-size: 0.9rem;
+  }
+}
+
+/* 選択中の餌表示（クリック可能） */
+.selected-food-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--accent-gradient);
+  border: none;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.selected-food-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.selected-food-display:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.selected-food-display:hover::before {
+  left: 100%;
+}
+
+.selected-food-display:active {
+  transform: translateY(0);
+}
+
+.selected-food-display:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.selected-emoji {
+  font-size: 2rem;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
+.selected-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.selected-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: center;
+}
+
+.selected-exp {
+  font-size: 0.875rem;
+  color: #ffffff;;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 餌やりボタン */
+.feed-btn-single {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent-gradient);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.feed-btn-single::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.feed-btn-single:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.feed-btn-single:hover::before {
+  left: 100%;
+}
+
+.feed-btn-single:active {
+  transform: translateY(0);
+}
+
+.feed-btn-single:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.feed-btn-icon {
+  font-size: 1.5rem;
+}
+
+.feed-btn-text {
+  font-size: 1.125rem;
+}
+

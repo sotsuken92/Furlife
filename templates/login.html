@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Furlife - ログイン / 新規登録</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/css/login.css">
+  <!-- PWA用メタタグ -->
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Furlife">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+</head>
+
+<script>
+  // Service Worker登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/js/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker登録成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker登録失敗:', error);
+        });
+    });
+  }
+</script>
+
+<body>
+  <div class="container">
+    
+    <!-- ========================================================================
+        左パネル（アプリ紹介）
+        ======================================================================== -->
+    <div class="left-panel">
+      <div class="logo"> Furlife</div>
+      <div class="tagline">
+        タスク管理とペット育成を組み合わせた<br>
+        新しいタスク管理アプリケーション
+      </div>
+      <div class="features">
+        <div class="feature-item">
+          <div class="feature-icon">📅</div>
+          <span>直感的なカレンダー</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🐾</div>
+          <span>タスク達成でペット成長</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🎯</div>
+          <span>月間目標の設定と追跡</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <span>進捗の可視化</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+        右パネル（ログイン/登録フォーム）
+        ======================================================================== -->
+    <div class="right-panel">
+      
+      <!-- タブ -->
+      <div class="tabs">
+        <button class="tab active" data-tab="login">ログイン</button>
+        <button class="tab" data-tab="signup">新規登録</button>
+      </div>
+
+      <!-- ログインフォーム -->
+      <div id="login-content" class="form-content active">
+        <form method="POST" action="{{ url_for('login') }}">
+          {% if error_message and request.endpoint == 'login' %}
+          <div class="alert">{{ error_message }}</div>
+          {% endif %}
+          
+          <div class="form-group">
+            <label class="form-label">ユーザー名</label>
+            <input type="text" name="username" class="form-input" placeholder="ユーザー名を入力" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">パスワード</label>
+            <input type="password" name="password" class="form-input" placeholder="パスワードを入力" required>
+          </div>
+          
+          <button type="submit" class="btn-submit">ログイン</button>
+        </form>
+      </div>
+
+      <!-- 新規登録フォーム -->
+      <div id="signup-content" class="form-content">
+        <form method="POST" action="{{ url_for('signup') }}">
+          {% if error_message and request.endpoint == 'signup' %}
+          <div class="alert">{{ error_message }}</div>
+          {% endif %}
+          
+          <div class="form-group">
+            <label class="form-label">ユーザー名</label>
+            <input type="text" name="username" class="form-input" placeholder="ユーザー名を入力" required maxlength="50">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">パスワード</label>
+            <input type="password" name="password" class="form-input" placeholder="5文字以上で入力" required minlength="5">
+          </div>
+          
+          <button type="submit" class="btn-submit">新規登録</button>
+        </form>
+      </div>
+      
+    </div>
+  </div>
+
+  <script src="/static/js/login.js"></script>
+</body>
+</html>

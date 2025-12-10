@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ショップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/shop.css">
+  <link rel="stylesheet" href="/static/css/levelup-modal.css">
+  <!-- PWA用メタタグ -->
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Furlife">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+</head>
+
+
+
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo"> Furlife</div>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">カレンダー</a>
+        <a href="/pet" class="nav-link">ペット詳細</a>
+        <a href="/shop" class="nav-link active">ショップ</a>
+        
+        <div class="settings-wrapper">
+          <div class="settings-trigger">設定 ▾</div>
+          <div class="settings-menu">
+            <div class="settings-menu-title">テーマを選択</div>
+            <div class="theme-option" data-theme="blue">
+              <div class="theme-color blue"></div>
+              <span>ライトブルー</span>
+            </div>
+            <div class="theme-option" data-theme="green">
+              <div class="theme-color green"></div>
+              <span>ライトグリーン</span>
+            </div>
+            <div class="theme-option" data-theme="dark">
+              <div class="theme-color dark"></div>
+              <span>ダークモード</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="coin-info">
+        <img src="/static/images/coin/coin.jpg" alt="コイン"> 
+        <span id="header-coin-count">{{ pet.coins }}</span>
+      </span>
+      <span class="user-info">{{ username }}さん</span>
+      <a href="/logout" class="btn-logout">ログアウト</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="shop-title">
+      <h1> ショップ</h1>
+    </div>
+
+    <div class="main-grid">
+      <!-- ペットカード -->
+      <div class="pet-card">
+        <div id="level-label" class="pet-level" {% if image == 'egg.jpg' or not pet.alive %}style="display:none"{% else %}style="display:block"{% endif %}>
+          Lv.{{ pet.level }}
+        </div>
+        <input type="text" id="pet-name-input" class="pet-name-input" placeholder="名前を入力" maxlength="10">
+        <img id="pet-img" src="/static/images/{{ image }}" alt="ペット" class="pet-image" onclick="location.href='/pet'">
+        
+        <!-- 経験値バー -->
+        <div class="exp-bar-container" {% if not (pet.alive and pet.started) %}style="display: none;"{% endif %}>
+          <div class="exp-bar-label">
+            <span>経験値</span>
+            <span id="exp-display">{{ pet.exp }} / {{ exp_table[pet.level] if pet.level in exp_table else 0 }}</span>
+          </div>
+          <div class="exp-bar-bg">
+            <div id="exp-bar-fill" class="exp-bar-fill" style="width: {% if pet.level in exp_table and exp_table[pet.level] > 0 %}{{ (pet.exp / exp_table[pet.level] * 100) | round }}{% else %}0{% endif %}%;"></div>
+          </div>
+        </div>
+        
+        <p id="pet-message" class="pet-message">{{ pet.message }}</p>
+
+        <!-- コイン表示 -->
+        <div class="coin-display"> コイン: <span id="coin-count">{{ pet.coins }}</span></div>
+
+        <!-- インベントリ表示 -->
+        <div class="inventory-card">
+          <h3 class="inventory-title"> 所持している餌</h3>
+          <div class="inventory-list">
+            {% for food in foods %}
+              <div class="inventory-item">
+                <img src="/static/images/food/{{ food.name }}.jpg" alt="{{ food.name }}" class="food-emoji">
+                <span class="food-name">{{ food.name }}</span>
+                <span class="food-count" data-food="{{ food.name }}">{{ pet.inventory.get(food.name, 0) }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- 餌やりセクション -->
+        <!--<div id="feeding-area" class="{% if not pet.started %}hidden{% endif %}">
+          <h3 class="section-title">$D83C$DF74 餌やり</h3>
+          <div class="feed-buttons">
+            {% for food in foods %}
+              <button class="feed-btn" data-food="{{ food.name }}" data-exp="{{ food.exp }}">
+                {{ food.emoji }} {{ food.name }} (+{{ food.exp }} EXP)
+              </button>
+            {% endfor %}
+          </div>
+        </div>-->
+      </div>
+
+      <!-- ショップカード -->
+      <div class="shop-card">
+        <h2 class="card-title"> 餌を購入</h2>
+        <div class="shop-items">
+          {% for food in foods %}
+            <div class="shop-item">
+              <div class="shop-item-header">
+                <img src="/static/images/food/{{ food.name }}.jpg" alt="{{ food.name }}" class="shop-item-emoji">
+                <div class="shop-item-info">
+                  <div class="shop-item-name">{{ food.name }}</div>
+                  <div class="shop-item-details">
+                    <span class="shop-item-price"> {{ food.price }} コイン</span>
+                    <span class="shop-item-exp">+{{ food.exp }} EXP</span>
+                  </div>
+                </div>
+              </div>
+              <button class="buy-btn" data-food="{{ food.name }}" data-price="{{ food.price }}" {% if pet.coins < food.price %}disabled{% endif %}>
+                購入
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- レベルアップモーダル -->
+  <div class="levelup-modal" id="levelupModal">
+    <div class="levelup-backdrop"></div>
+    <div class="levelup-content" id="levelupContent">
+      <div class="levelup-sparkles" id="levelupSparkles"></div>
+      <div class="levelup-title">LEVEL UP!</div>
+      <div class="levelup-level-change">
+        <span class="level-from" id="levelupLevelFrom">Lv.0</span>
+        <span class="level-arrow">→</span>
+        <span class="level-to" id="levelupLevelTo">Lv.1</span>
+      </div>
+      <div class="levelup-pet-container">
+        <div class="levelup-pet-glow"></div>
+        <img id="levelupPetImage" src="" alt="ペット" class="levelup-pet-image">
+      </div>
+      <div class="levelup-message" id="levelupMessage">おめでとう!</div>
+      <div class="levelup-evolution-type" id="levelupEvolutionType" style="display: none;">タイプ1に進化!</div>
+      <div class="levelup-rarity" id="levelupRarity" style="display: none;"></div>
+      <button class="levelup-close-btn" id="levelupCloseBtn">図鑑で確認する</button>
+    </div>
+  </div>
+
+  <script src="/static/js/shop.js"></script>
+
+  <script>
+  // Service Worker登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/js/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker登録成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker登録失敗:', error);
+        });
+    });
+  }
+  </script>
+
+</body>
+</html>

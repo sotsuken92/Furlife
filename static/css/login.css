@@ -1,0 +1,238 @@
+/* =============================================================================
+  フォント読み込み
+   ============================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* =============================================================================
+  リセットCSS
+   ============================================================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* =============================================================================
+  ページ全体
+   ============================================================================= */
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-image: var(--bg-image, url(''));
+  background-color: #f8fafc;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(6px);
+}
+
+/* =============================================================================
+  左パネル（青）
+   ============================================================================= */
+.left-panel {
+  flex: 1;
+  background: linear-gradient(180deg, #3182ce 0%, #2b6cb0 100%);
+  padding: 60px 40px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.logo {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tagline {
+  font-size: 1rem;
+  opacity: 0.95;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.feature-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =============================================================================
+  右パネル（白）
+   ============================================================================= */
+.right-panel {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 60px 40px;
+  color: #2d3748;
+  position: relative;
+}
+
+/* =============================================================================
+  タブ
+   ============================================================================= */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 40px;
+}
+
+.tab {
+  flex: 1;
+  padding: 16px;
+  background: none;
+  border: none;
+  color: #718096;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  color: #2b6cb0;
+  border-bottom-color: #3182ce;
+}
+
+.tab:hover {
+  color: #3182ce;
+}
+
+/* =============================================================================
+  フォームコンテンツ
+   ============================================================================= */
+.form-content {
+  display: none;
+}
+
+.form-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* =============================================================================
+  フォーム要素
+   ============================================================================= */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  color: #2d3748;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: #f7fafc;
+  border: 2px solid #cbd5e0;
+  border-radius: 6px;
+  color: #2d3748;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3182ce;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(49, 130, 206, 0.3);
+}
+
+/* =============================================================================
+  アラート
+   ============================================================================= */
+.alert {
+  background: rgba(254, 215, 215, 0.6);
+  border: 1px solid #fc8181;
+  border-radius: 6px;
+  color: #c53030;
+  padding: 14px;
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+}
+
+/* =============================================================================
+  レスポンシブ
+   ============================================================================= */
+@media (max-width: 768px) {
+  .container { 
+    flex-direction: column; 
+  }
+  .left-panel { 
+    text-align: center; 
+    padding: 40px 20px; 
+  }
+  .right-panel { 
+    padding: 40px 20px; 
+  }
+}

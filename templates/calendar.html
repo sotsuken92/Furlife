@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>カレンダー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/calendar.css">
+  <link rel="stylesheet" href="/static/css/levelup-modal.css">
+  <!-- PWA用メタタグ -->
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Furlife">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+</head>
+
+
+
+<body>
+  <!-- ========================================================================
+      ヘッダー
+      ======================================================================== -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo"> Furlife</div>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">カレンダー</a>
+        <a href="/pet" class="nav-link">ペット詳細</a>
+        <a href="/shop" class="nav-link">ショップ</a>
+        
+        <!-- 設定メニュー -->
+        <div class="settings-wrapper">
+          <div class="settings-trigger">設定 ▾</div>
+          <div class="settings-menu">
+            
+            <!-- テーマ設定セクション -->
+            <div class="settings-section">
+              <div class="settings-section-header">
+                <span>テーマを選択</span>
+                <span class="settings-arrow">▼</span>
+              </div>
+              <div class="settings-section-content">
+                <div class="theme-option" data-theme="blue">
+                  <div class="theme-color blue"></div>
+                  <span>ライトブルー</span>
+                </div>
+                <div class="theme-option" data-theme="green">
+                  <div class="theme-color green"></div>
+                  <span>ライトグリーン</span>
+                </div>
+                <div class="theme-option" data-theme="dark">
+                  <div class="theme-color dark"></div>
+                  <span>ダークモード</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 時間間隔設定セクション -->
+            <div class="settings-section">
+              <div class="settings-section-header">
+                <span>予定の時間間隔</span>
+                <span class="settings-arrow">▼</span>
+              </div>
+              <div class="settings-section-content">
+                <div class="time-duration-options">
+                  <div class="time-duration-option" data-duration="30">
+                    <input type="radio" name="time-duration" id="duration-30" value="30">
+                    <label for="duration-30">30分</label>
+                  </div>
+                  <div class="time-duration-option" data-duration="60">
+                    <input type="radio" name="time-duration" id="duration-60" value="60" checked>
+                    <label for="duration-60">1時間</label>
+                  </div>
+                  <div class="time-duration-option" data-duration="90">
+                    <input type="radio" name="time-duration" id="duration-90" value="90">
+                    <label for="duration-90">1時間30分</label>
+                  </div>
+                  <div class="time-duration-option" data-duration="120">
+                    <input type="radio" name="time-duration" id="duration-120" value="120">
+                    <label for="duration-120">2時間</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 場所の設定セクション -->
+            <div class="settings-section">
+              <div class="settings-section-header">
+                <span>場所の設定</span>
+                <span class="settings-arrow">▼</span>
+              </div>
+              <div class="settings-section-content">
+                <div id="settings-location-list" class="settings-location-list"></div>
+                <div style="padding: 12px 16px;">
+                  <button class="btn-add-location" id="settings-add-location-btn">+ 新しい場所</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ランダム予定の設定セクション -->
+            <div class="settings-section">
+              <div class="settings-section-header">
+                <span>ランダム予定の設定</span>
+                <span class="settings-arrow">▼</span>
+              </div>
+              <div class="settings-section-content">
+                <div id="settings-event-list" class="settings-event-list"></div>
+                <div style="padding: 12px 16px;">
+                  <button class="btn-add-event-preset" id="settings-add-event-btn">+ 新しい予定</button>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="coin-info"><img src="/static/images/coin/coin.jpg"> <span id="header-coin-count">{{ pet.coins }}</span></span>
+      <span class="user-info">{{ username }}さん</span>
+      <a href="/logout" class="btn-logout">ログアウト</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- ========================================================================
+        カレンダータイトル
+        ======================================================================== -->
+    <div class="calendar-title">
+      <h1>{{ year }}年{{ month }}月</h1>
+    </div>
+
+    <!-- ========================================================================
+        目標セクション
+        ======================================================================== -->
+    <div class="goal-card">
+      <div class="card-title"> 今月の目標</div>
+      
+      <!-- 目標表示エリア -->
+      <div id="goal-display-area" {% if current_goal.goal %}style="display:block"{% else %}style="display:none"{% endif %}>
+        <div class="goal-text" id="goal-text">{{ current_goal.goal if current_goal.goal else '' }}</div>
+        {% if current_goal.achieved %}
+          <span class="badge badge-success">✓ 達成済み</span>
+        {% elif current_goal.goal %}
+          <button class="btn btn-warning btn-small" id="achieve-goal-btn">達成</button>
+        {% endif %}
+      </div>
+      
+      <!-- 目標入力エリア -->
+      <div id="goal-input-area" {% if current_goal.goal %}style="display:none"{% else %}style="display:block"{% endif %}>
+        <div class="goal-input-group">
+          <input type="text" id="goal-input" class="goal-input" placeholder="今月の目標を入力してください" maxlength="100">
+          <button class="btn btn-primary" id="set-goal-btn">設定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================
+        メイングリッド(タイムライン + ペットカード)
+        ======================================================================== -->
+    <div class="main-grid">
+      
+      <!-- 今日の予定(タイムライン形式) -->
+      <div class="card">
+        <h2 class="card-title">
+          <span id="selected-date-label">今日の予定</span>
+          <button id="date-picker-trigger" class="date-picker-trigger">日付変更 ▾</button>
+          <button id="add-event-trigger" class="add-event-trigger">+ 予定追加</button>
+          <input type="hidden" id="selected-date-input" value="{{ today }}">
+        </h2>
+        
+        <div class="timeline-container">
+          <div class="timeline-scroll">
+            <div class="timeline-grid">
+              
+              <!-- 時間軸 -->
+              <div class="timeline-hours">
+                {% for hour in range(24) %}
+                  <div class="hour-label">{{ "%02d"|format(hour) }}:00</div>
+                {% endfor %}
+              </div>
+              
+              <!-- イベント表示エリア -->
+              <div class="timeline-events" id="timeline-events">
+                {% if today_events %}
+                  {% for ev in today_events %}
+                    {% set start_time = ev.get('start_time', ev.get('time', '00:00')) %}
+                    {% set end_time = ev.get('end_time', '23:59') %}
+                    {% set is_past = (end_time <= now_time) %}
+                    {% set can_delete = (end_time > now_time and ev.done is none) %}
+                    
+                    {% set start_parts = start_time.split(':') %}
+                    {% set end_parts = end_time.split(':') %}
+                    {% set start_minutes = start_parts[0]|int * 60 + start_parts[1]|int %}
+                    {% set end_minutes = end_parts[0]|int * 60 + end_parts[1]|int %}
+                    {% set top_position = (start_minutes / 1440.0 * 100) %}
+                    {% set height = ((end_minutes - start_minutes) / 1440.0 * 100) %}
+                    
+                    {% set event_class = "timeline-event" %}
+                    {% if ev.done == true %}
+                      {% set event_class = event_class + " event-done" %}
+                    {% elif ev.done == false %}
+                      {% set event_class = event_class + " event-failed" %}
+                    {% elif is_past %}
+                      {% set event_class = event_class + " event-past" %}
+                    {% endif %}
+                    
+                    <div class="{{ event_class }}" 
+                        style="top: {{ top_position }}%; height: {{ height }}%;" 
+                        data-id="{{ ev.id }}" 
+                        data-date="{{ today }}" 
+                        data-start-time="{{ start_time }}" 
+                        data-end-time="{{ end_time }}" 
+                        data-event="{{ ev.event }}" 
+                        data-location="{{ ev.get('location', 'その他') }}">
+                      <div class="timeline-event-time">{{ start_time }} - {{ end_time }}</div>
+                      <div class="timeline-event-location">📍 {{ ev.get('location', 'その他') }}</div>
+                      <div class="timeline-event-text">{{ ev.event }}</div>
+                      <div class="timeline-event-actions">
+                        {% if is_past and ev.done is none %}
+                          <button class="btn btn-success btn-small done-btn" data-id="{{ ev.id }}" data-date="{{ today }}" data-done="true">できた</button>
+                          <button class="btn btn-danger btn-small done-btn" data-id="{{ ev.id }}" data-date="{{ today }}" data-done="false">できなかった</button>
+                          <button class="btn btn-danger btn-small delete-btn" data-id="{{ ev.id }}" data-date="{{ today }}">削除</button>
+                        {% elif ev.done is not none %}
+                          {% if ev.done %}
+                            <span class="badge badge-success">✓ できた</span>
+                          {% else %}
+                            <span class="badge badge-danger">✗ できなかった</span>
+                          {% endif %}
+                        {% endif %}
+                        {% if can_delete %}
+                          <button class="btn btn-danger btn-small delete-btn" data-id="{{ ev.id }}" data-date="{{ today }}">削除</button>
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                {% endif %}
+                
+                <!-- 現在時刻のライン -->
+                {% set now_parts = now_time.split(':') %}
+                {% set now_minutes = now_parts[0]|int * 60 + now_parts[1]|int %}
+                {% set now_position = (now_minutes / 1440.0 * 100) %}
+                <div class="current-time-line" style="top: {{ now_position }}%;">
+                  <div class="current-time-marker"></div>
+                  <div class="current-time-label">{{ now_time }}</div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ペットカード -->
+      <div class="pet-card">
+        <div id="level-label" class="pet-level" {% if image == 'egg.jpg' or not pet.alive %}style="display:none"{% else %}style="display:block"{% endif %}>
+          Lv.{{ pet.level }}
+        </div>
+        <input type="text" id="pet-name-input" class="pet-name-input" placeholder="名前を入力" maxlength="10">
+        <img id="pet-img" src="/static/images/{{ image }}" alt="ペット" class="pet-image" onclick="location.href='/pet'">
+        
+        <!-- 経験値バー(生存中のみ表示) -->
+        <div class="exp-bar-container" {% if not (pet.alive and pet.started) %}style="display: none;"{% endif %}>
+          <div class="exp-bar-label">
+            <span>経験値</span>
+            <span id="exp-display">{{ pet.exp }} / {{ exp_table[pet.level] if pet.level in exp_table else 0 }}</span>
+          </div>
+          <div class="exp-bar-bg">
+            <div id="exp-bar-fill" class="exp-bar-fill" style="width: {% if pet.level in exp_table and exp_table[pet.level] > 0 %}{{ (pet.exp / exp_table[pet.level] * 100) | round }}{% else %}0{% endif %}%;"></div>
+          </div>
+        </div>
+        
+        <p id="pet-message" class="pet-message">{{ pet.message }}</p>
+
+        <!-- 育成開始エリア -->
+        <div id="start-area" class="{% if pet.started %}hidden{% endif %}">
+          <button id="start" class="pet-btn">育てる</button>
+        </div>
+
+        <!-- ゲームエリア -->
+        <div id="game-area" class="{% if not pet.started %}hidden{% endif %}">
+          <div id="coin-display" class="coin-display"> コイン: <span id="coin-count">{{ pet.coins }}</span></div>
+          <button id="go-to-shop-btn" class="pet-btn pet-btn-shop"> ショップに行く</button>
+          <button id="revive-btn-game" class="pet-btn">育て直す</button>
+          <div id="revive-area" class="hidden" style="margin-top: 8px;">
+            <button id="revive" class="pet-btn">卵から育て直す</button>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- ========================================================================
+        カレンダー
+        ======================================================================== -->
+    <div class="calendar-wrapper">
+      <div class="calendar-header">
+        <div class="calendar-month-display">{{ year }}年{{ month }}月</div>
+        <div class="calendar-nav">
+          <a href="{{ prev_link }}" class="btn btn-primary">← 前月</a>
+          <a href="{{ next_link }}" class="btn btn-primary">翌月 →</a>
+        </div>
+      </div>
+
+      <table class="calendar-table">
+        <thead>
+          <tr>
+            {% for w in weeknames %}
+              <th>{{ w }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for cols in weeks %}
+            <tr>
+              {% for d in cols %}
+                {% set date_str = "{:04}-{:02}-{:02}".format(year, month, d) if d != 0 else "" %}
+                <td class="calendar-cell {% if date_str == today %}today{% endif %}" data-date="{{ date_str }}">
+                  {% if d != 0 %}
+                    <div class="day-number">{{ d }}</div>
+                    {% for item in events.get(date_str, []) %}
+                      {% set item_start = item.get('start_time', item.get('time', '00:00')) %}
+                      {% set item_end = item.get('end_time', '23:59') %}
+                      {% set item_location = item.get('location', 'その他') %}
+                      <div class="calendar-event event-entry" 
+                          data-id="{{ item.id }}" 
+                          data-start-time="{{ item_start }}" 
+                          data-end-time="{{ item_end }}" 
+                          data-event="{{ item.event }}" 
+                          data-date="{{ date_str }}" 
+                          data-location="{{ item_location }}">
+                        {{ item_start }}-{{ item_end }} {{ item.event }}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ========================================================================
+        編集フォーム
+        ======================================================================== -->
+    <div id="form" class="form-card hidden">
+      <h3 class="card-title">予定の編集</h3>
+      <form id="eventForm" method="post">
+        <div id="form-error-message" class="alert" style="display: none;"></div>
+        <input type="hidden" name="date" id="date" />
+        <input type="hidden" name="id" id="event_id" />
+
+        <div class="form-group">
+          <label class="form-label">場所</label>
+          <select name="location" id="locationSelect" class="form-select" required>
+            <option value="">場所を選択</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">開始時間</label>
+          <input type="time" name="start_time" id="startTimeInput" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">終了時間</label>
+          <input type="time" name="end_time" id="endTimeInput" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">予定</label>
+          <div class="event-input-wrapper">
+            <input type="text" name="event" id="eventInput" class="form-input event-input-field" required />
+            <button type="button" id="randomEventBtn" class="btn-random-event" title="ランダムな予定を入力">🎲</button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="cancelBtn" class="btn" style="background: var(--text-tertiary); color: white;">キャンセル</button>
+          <button type="submit" id="submitBtn" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+      モーダル
+      ========================================================================== -->
+  
+  <!-- レベルアップモーダル -->
+  <div class="levelup-modal" id="levelupModal">
+    <div class="levelup-backdrop"></div>
+    <div class="levelup-content" id="levelupContent">
+      
+      <!-- キラキラエフェクト -->
+      <div class="levelup-sparkles" id="levelupSparkles"></div>
+      
+      <!-- タイトル -->
+      <div class="levelup-title">LEVEL UP!</div>
+      
+      <!-- レベル変化 -->
+      <div class="levelup-level-change">
+        <span class="level-from" id="levelupLevelFrom">Lv.0</span>
+        <span class="level-arrow">→</span>
+        <span class="level-to" id="levelupLevelTo">Lv.1</span>
+      </div>
+      
+      <!-- ペット画像 -->
+      <div class="levelup-pet-container">
+        <div class="levelup-pet-glow"></div>
+        <img id="levelupPetImage" src="" alt="ペット" class="levelup-pet-image">
+      </div>
+      
+      <!-- メッセージ -->
+      <div class="levelup-message" id="levelupMessage">
+        おめでとう!
+      </div>
+      
+      <!-- 進化タイプバッジ(最終進化時のみ表示) -->
+      <div class="levelup-evolution-type" id="levelupEvolutionType" style="display: none;">
+        タイプ1に進化!
+      </div>
+      
+      <!-- レアリティ星(最終進化時のみ表示) -->
+      <div class="levelup-rarity" id="levelupRarity" style="display: none;">
+      </div>
+      
+      <!-- 閉じるボタン -->
+      <button class="levelup-close-btn" id="levelupCloseBtn">
+        図鑑で確認する
+      </button>
+    </div>
+  </div>
+
+  <!-- コイン獲得モーダル -->
+  <div class="coin-modal" id="coinModal">
+    <div class="coin-backdrop"></div>
+    <div class="coin-content">
+      
+      <!-- キラキラエフェクト -->
+      <div class="coin-sparkles" id="coinSparkles"></div>
+      
+      <!-- タイトル -->
+      <div class="coin-title">COIN GET!</div>
+      
+      <!-- コインアイコン -->
+      <div class="coin-icon-container">
+        <div class="coin-icon-glow"></div>
+        <div class="coin-icon"><img src="/static/images/coin/coin.jpg"></div>
+      </div>
+      
+      <!-- 獲得コイン数 -->
+      <div class="coin-amount" id="coinAmount">+100</div>
+      
+      <!-- メッセージ -->
+      <div class="coin-message" id="coinMessage">
+        よくできました!
+      </div>
+      
+      <!-- 合計コイン -->
+      <div class="coin-total">
+        所持コイン: <span class="coin-total-amount" id="coinTotalAmount">1000</span>
+      </div>
+      
+      <!-- 閉じるボタン -->
+      <button class="coin-close-btn" id="coinCloseBtn">
+        OK
+      </button>
+    </div>
+  </div>
+
+  <!-- ペット選択モーダル -->
+  <div class="pet-select-modal" id="petSelectModal">
+    <div class="pet-select-content">
+      <h2 class="pet-select-title">育てるペットを選んでください</h2>
+      <div class="pet-select-grid">
+        {% for type_id, type_info in pet_types.items() %}
+          <div class="pet-select-item" data-pet-type="{{ type_id }}">
+            <img src="/static/images/pet{{ type_id }}/egg.jpg" alt="{{ type_info.name }}" class="pet-select-image">
+            <div class="pet-select-name">{{ type_info.name }}</div>
+            <div class="pet-select-desc">{{ type_info.description }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- カラーピッカーモーダル -->
+  <div class="color-picker-modal" id="colorPickerModal">
+    <div class="color-picker-content">
+      <h3 class="color-picker-title">色を選択</h3>
+      <div class="color-presets" id="colorPresets">
+        <div class="color-preset" data-color="#ef4444" style="background: #ef4444;"></div>
+        <div class="color-preset" data-color="#f97316" style="background: #f97316;"></div>
+        <div class="color-preset" data-color="#f59e0b" style="background: #f59e0b;"></div>
+        <div class="color-preset" data-color="#eab308" style="background: #eab308;"></div>
+        <div class="color-preset" data-color="#84cc16" style="background: #84cc16;"></div>
+        <div class="color-preset" data-color="#22c55e" style="background: #22c55e;"></div>
+        <div class="color-preset" data-color="#10b981" style="background: #10b981;"></div>
+        <div class="color-preset" data-color="#14b8a6" style="background: #14b8a6;"></div>
+        <div class="color-preset" data-color="#06b6d4" style="background: #06b6d4;"></div>
+        <div class="color-preset" data-color="#0ea5e9" style="background: #0ea5e9;"></div>
+        <div class="color-preset" data-color="#3b82f6" style="background: #3b82f6;"></div>
+        <div class="color-preset" data-color="#6366f1" style="background: #6366f1;"></div>
+        <div class="color-preset" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+        <div class="color-preset" data-color="#a855f7" style="background: #a855f7;"></div>
+        <div class="color-preset" data-color="#d946ef" style="background: #d946ef;"></div>
+        <div class="color-preset" data-color="#ec4899" style="background: #ec4899;"></div>
+        <div class="color-preset" data-color="#f43f5e" style="background: #f43f5e;"></div>
+        <div class="color-preset" data-color="#64748b" style="background: #64748b;"></div>
+        <div class="color-preset" data-color="#6b7280" style="background: #6b7280;"></div>
+        <div class="color-preset" data-color="#78716c" style="background: #78716c;"></div>
+      </div>
+      <div class="custom-color-section">
+        <label class="custom-color-label">カスタムカラー</label>
+        <input type="color" id="customColorInput" class="custom-color-input">
+      </div>
+      <div class="color-picker-actions">
+        <button class="btn" style="background: var(--text-tertiary); color: white;" id="cancelColorBtn">キャンセル</button>
+        <button class="btn btn-primary" id="confirmColorBtn">決定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日付選択モーダル -->
+  <div class="date-picker-modal" id="datePickerModal">
+    <div class="date-picker-content">
+      <h3 class="date-picker-title">日付を選択</h3>
+      
+      <div class="date-picker-selectors">
+        <div class="date-picker-group">
+          <label class="date-picker-label">年</label>
+          <select id="yearSelect" class="date-picker-select"></select>
+        </div>
+        
+        <div class="date-picker-group">
+          <label class="date-picker-label">月</label>
+          <select id="monthSelect" class="date-picker-select"></select>
+        </div>
+        
+        <div class="date-picker-group">
+          <label class="date-picker-label">日</label>
+          <select id="daySelect" class="date-picker-select"></select>
+        </div>
+      </div>
+      
+      <div class="date-picker-weekday" id="weekdayDisplay"></div>
+      
+      <div class="date-picker-actions">
+        <button class="btn" style="background: var(--text-tertiary); color: white;" id="cancelDateBtn">キャンセル</button>
+        <button class="btn btn-primary" id="confirmDateBtn">決定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+      データ埋め込み(JavaScript用)
+      ========================================================================== -->
+  <script id="events-data" type="application/json">{{ events|tojson|safe }}</script>
+  <script id="month-key-data" type="text/plain">{{ month_key }}</script>
+  <script id="goal-achieved-data" type="text/plain">{{ current_goal.achieved|tojson|safe }}</script>
+
+  <script src="/static/js/calendar.js"></script>
+
+  <script>
+  // Service Worker登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/js/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker登録成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker登録失敗:', error);
+        });
+    });
+  }
+  </script>
+</body>
+</html>
