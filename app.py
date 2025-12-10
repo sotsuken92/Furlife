@@ -3,6 +3,11 @@ from flask import Flask, request, redirect, url_for, jsonify, render_template, s
 import json
 import re
 from datetime import datetime
+# タイムゾーン設定
+os.environ['TZ'] = 'Asia/Tokyo'
+if hasattr(time, 'tzset'):
+    import time
+    time.tzset()
 import os
 import calendar
 import random
