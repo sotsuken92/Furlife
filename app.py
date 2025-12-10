@@ -3,6 +3,12 @@ from flask import Flask, request, redirect, url_for, jsonify, render_template, s
 import json
 import re
 from datetime import datetime
+from datetime import datetime
+import pytz
+
+# 日本時間のタイムゾーン設定
+JST = pytz.timezone('Asia/Tokyo')
+
 import os
 import calendar
 import random
