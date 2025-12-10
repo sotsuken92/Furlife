@@ -236,6 +236,78 @@ function initPetName() {
   });
 }
 
+
+// =============================================================================
+// 現在時刻の自動更新
+// =============================================================================
+
+function updateCurrentTimeLine() {
+  const now = new Date();
+  const nowTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+  // 現在時刻ラベルを更新
+  const currentTimeLabel = q('.current-time-label');
+  if (currentTimeLabel) {
+    currentTimeLabel.textContent = nowTimeStr;
+  }
+  
+  // 現在時刻ラインの位置を更新
+  const currentTimeLine = q('.current-time-line');
+  if (currentTimeLine) {
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const nowPosition = (nowMinutes / 1440.0 * 100);
+    currentTimeLine.style.top = `${nowPosition}%`;
+  }
+  
+  // 過去の予定の状態を更新
+  updatePastEvents(nowTimeStr);
+}
+
+function updatePastEvents(nowTimeStr) {
+  const today = new Date().toISOString().split('T')[0];
+  const selectedDate = q("#selected-date-input")?.value || "";
+  
+  // 今日の予定のみ更新
+  if (selectedDate !== today) return;
+  
+  qa('.timeline-event').forEach(eventDiv => {
+    const endTime = eventDiv.dataset.endTime;
+    const isDone = eventDiv.classList.contains('event-done') || eventDiv.classList.contains('event-failed');
+    
+    // 終了時刻が過ぎていて、まだ完了/失敗の判定がされていない場合
+    if (endTime <= nowTimeStr && !isDone) {
+      eventDiv.classList.add('event-past');
+      
+      // アクションボタンを更新
+      const actionsDiv = eventDiv.querySelector('.timeline-event-actions');
+      if (actionsDiv && !actionsDiv.querySelector('.done-btn')) {
+        const eventId = eventDiv.dataset.id;
+        const dateStr = eventDiv.dataset.date;
+        
+        actionsDiv.innerHTML = `
+          <button class="btn btn-success btn-small done-btn" data-id="${eventId}" data-date="${dateStr}" data-done="true">できた</button>
+          <button class="btn btn-danger btn-small done-btn" data-id="${eventId}" data-date="${dateStr}" data-done="false">できなかった</button>
+          <button class="btn btn-danger btn-small delete-btn" data-id="${eventId}" data-date="${dateStr}">削除</button>
+        `;
+      }
+    }
+  });
+}
+
+function startCurrentTimeUpdate() {
+  // 初回実行
+  updateCurrentTimeLine();
+  
+  // 1分ごとに更新
+  setInterval(updateCurrentTimeLine, 60000);
+  
+  // 秒単位での滑らかな更新が必要な場合は以下を使用
+  // setInterval(updateCurrentTimeLine, 1000);
+}
+
+
+
+
 // =============================================================================
 // タイムライン表示
 // =============================================================================
@@ -1416,6 +1488,7 @@ function init() {
   initShopButton();
   
   applyColorsToExistingEvents();
+  startCurrentTimeUpdate();
   
   const initialDate = q("#selected-date-input")?.value || "";
   if (initialDate) displayEventsForDate(initialDate);
