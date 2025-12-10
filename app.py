@@ -3,7 +3,6 @@ from flask import Flask, request, redirect, url_for, jsonify, render_template, s
 import json
 import re
 from datetime import datetime
-from datetime import datetime
 import pytz
 
 # 日本時間のタイムゾーン設定
@@ -602,7 +601,7 @@ def signup():
         
         users[username] = {
             "password": generate_password_hash(password),
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now(JST).isoformat()
         }
         save_users()
         
@@ -639,7 +638,7 @@ def redirect_to_current_month():
     if "username" not in session:
         return redirect(url_for("login"))
     
-    now = datetime.now()
+    now = datetime.now(JST)
     return redirect(url_for("index_get", year=now.year, month=now.month))
 
 @app.route("/calendar/<int:year>/<int:month>")
@@ -653,13 +652,13 @@ def index_get(year, month):
     user_locs = get_user_locations()
     
     weeks, weeknames = get_month_calendar(year, month)
-    today = datetime.today().strftime("%Y-%m-%d")
+    today = datetime.now(JST).strftime("%Y-%m-%d")
     today_events = user_events.get(today, [])
     today_events_sorted = sorted(today_events, key=lambda x: x.get("start_time", x.get("time", "00:00")))
 
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
     next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
-    now_time = datetime.now().strftime("%H:%M")
+    now_time = datetime.now(JST).strftime("%H:%M")
 
     pet = get_user_pet()
 
@@ -703,8 +702,8 @@ def add_event():
     if start_time >= end_time:
         return "終了時間は開始時間より後にしてください", 400
 
-    today_str = datetime.today().strftime("%Y-%m-%d")
-    now_time_str = datetime.now().strftime("%H:%M")
+    today_str = datetime.now(JST).strftime("%Y-%m-%d")
+    now_time_str = datetime.now(JST).strftime("%H:%M")
 
     if date_str < today_str:
         return "過去の日付の予定は追加できません", 400
