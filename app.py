@@ -18,10 +18,10 @@ JST = pytz.timezone('Asia/Tokyo')
 # =============================================================================
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here-change-this")
+app.secret_key = os.environ.get("SECRET_KEY", "8933")
 
 # MongoDB接続
-MONGODB_URI = os.environ.get('MONGODB_URI')
+MONGODB_URI = os.environ.get('mongodb+srv://unkotyan0209_db_user:rS2EeA5auXdJmdR4')
 if not MONGODB_URI:
     raise ValueError("MONGODB_URI environment variable is not set")
 
