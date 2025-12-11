@@ -1,143 +1,133 @@
-from flask import send_from_directory
-from flask import Flask, request, redirect, url_for, jsonify, render_template, session
+from flask import send_from_directory, Flask, request, redirect, url_for, jsonify, render_template, session
 import json
 import re
 from datetime import datetime
 import pytz
-
-# 日本時間のタイムゾーン設定
-JST = pytz.timezone('Asia/Tokyo')
-
 import os
 import calendar
 import random
 import requests
 from werkzeug.security import generate_password_hash, check_password_hash
+from pymongo import MongoClient
+
+# 日本時間のタイムゾーン設定
+JST = pytz.timezone('Asia/Tokyo')
 
 # =============================================================================
 # アプリケーション初期化
 # =============================================================================
 
 app = Flask(__name__)
-app.secret_key = "your-secret-key-here-change-this"
+app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here-change-this")
 
-# ファイルパス定義
-SAVE_FILE = "events.json"
-POKEDEX_FILE = "pokedex.json"
-USERS_FILE = "users.json"
-GOALS_FILE = "goals.json"
-LOCATIONS_FILE = "locations.json"
+# MongoDB接続
+MONGODB_URI = os.environ.get('MONGODB_URI')
+if not MONGODB_URI:
+    raise ValueError("MONGODB_URI environment variable is not set")
 
-# API設定
-WEATHER_API_KEY = "YOUR_API_KEY_HERE"
+client = MongoClient(MONGODB_URI)
+db = client['furlife']
 
-# =============================================================================
-# データ保存・読み込み関数
-# =============================================================================
+# コレクション定義
+users_col = db['users']
+events_col = db['events']
+pokedex_col = db['pokedex']
+goals_col = db['goals']
+pets_col = db['pets']
+locations_col = db['locations']
 
-def save_events():
-    """イベントデータをJSONファイルに保存"""
-    with open(SAVE_FILE, "w", encoding="utf-8") as f:
-        json.dump(events, f, ensure_ascii=False, indent=2)
-
-def save_pokedex():
-    """図鑑データをJSONファイルに保存"""
-    with open(POKEDEX_FILE, "w", encoding="utf-8") as f:
-        json.dump(pokedex, f, ensure_ascii=False, indent=2)
-
-def save_users():
-    """ユーザーデータをJSONファイルに保存"""
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(users, f, ensure_ascii=False, indent=2)
-
-def save_goals():
-    """目標データをJSONファイルに保存"""
-    with open(GOALS_FILE, "w", encoding="utf-8") as f:
-        json.dump(goals, f, ensure_ascii=False, indent=2)
-
-def save_locations():
-    """場所データをJSONファイルに保存"""
-    with open(LOCATIONS_FILE, "w", encoding="utf-8") as f:
-        json.dump(user_locations, f, ensure_ascii=False, indent=2)
-
-# データ読み込み
-if os.path.exists(SAVE_FILE):
-    with open(SAVE_FILE, "r", encoding="utf-8") as f:
-        events = json.load(f)
-else:
-    events = {}
-
-if os.path.exists(POKEDEX_FILE):
-    with open(POKEDEX_FILE, "r", encoding="utf-8") as f:
-        pokedex = json.load(f)
-else:
-    pokedex = {}
-
-if os.path.exists(USERS_FILE):
-    with open(USERS_FILE, "r", encoding="utf-8") as f:
-        users = json.load(f)
-else:
-    users = {}
-
-if os.path.exists(GOALS_FILE):
-    with open(GOALS_FILE, "r", encoding="utf-8") as f:
-        goals = json.load(f)
-else:
-    goals = {}
-
-if os.path.exists(LOCATIONS_FILE):
-    with open(LOCATIONS_FILE, "r", encoding="utf-8") as f:
-        user_locations = json.load(f)
-else:
-    user_locations = {}
+# APIキー
+WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY", "YOUR_API_KEY_HERE")
 
 # =============================================================================
-# データマイグレーション
+# データ保存・読み込み関数（MongoDB版）
 # =============================================================================
 
-def migrate_events_data():
-    """既存イベントデータを新形式に変換"""
-    modified = False
-    for username in events:
-        for date in events[username]:
-            for event in events[username][date]:
-                if "time" in event and "start_time" not in event:
-                    old_time = event["time"]
-                    event["start_time"] = old_time
-                    try:
-                        hours, minutes = map(int, old_time.split(":"))
-                        end_hours = hours + 1
-                        if end_hours >= 24:
-                            end_hours = 23
-                            minutes = 59
-                        event["end_time"] = f"{end_hours:02d}:{minutes:02d}"
-                    except:
-                        event["end_time"] = "23:59"
-                    del event["time"]
-                    modified = True
-                
-                if "location" not in event:
-                    event["location"] = "その他"
-                    modified = True
-    
-    if modified:
-        save_events()
-        print("イベントデータを新形式に変換しました")
+def save_user_to_db(username, password_hash):
+    """ユーザーをDBに保存"""
+    users_col.update_one(
+        {'username': username},
+        {'$set': {'password': password_hash, 'created_at': datetime.now(JST).isoformat()}},
+        upsert=True
+    )
 
-def migrate_pokedex_data():
-    """図鑑データに育成回数を追加"""
-    modified = False
-    for username in pokedex:
-        if "discovered" in pokedex[username] and "育成_counts" not in pokedex[username]:
-            pokedex[username]["育成_counts"] = {}
-            modified = True
-    
-    if modified:
-        save_pokedex()
-        print("図鑑データに育成回数を追加しました")
+def get_user_from_db(username):
+    """ユーザー情報を取得"""
+    return users_col.find_one({'username': username})
 
-migrate_events_data()
-migrate_pokedex_data()
+def save_events_to_db(username, events_data):
+    """イベントデータをDBに保存"""
+    events_col.update_one(
+        {'username': username},
+        {'$set': {'events': events_data}},
+        upsert=True
+    )
+
+def load_events_from_db(username):
+    """イベントデータを読み込み"""
+    result = events_col.find_one({'username': username})
+    return result['events'] if result and 'events' in result else {}
+
+def save_pokedex_to_db(username, pokedex_data):
+    """図鑑データをDBに保存"""
+    pokedex_col.update_one(
+        {'username': username},
+        {'$set': {'data': pokedex_data}},
+        upsert=True
+    )
+
+def load_pokedex_from_db(username):
+    """図鑑データを読み込み"""
+    result = pokedex_col.find_one({'username': username})
+    return result['data'] if result and 'data' in result else {"discovered": [], "育成_counts": {}}
+
+def save_goals_to_db(username, goals_data):
+    """目標データをDBに保存"""
+    goals_col.update_one(
+        {'username': username},
+        {'$set': {'goals': goals_data}},
+        upsert=True
+    )
+
+def load_goals_from_db(username):
+    """目標データを読み込み"""
+    result = goals_col.find_one({'username': username})
+    return result['goals'] if result and 'goals' in result else {}
+
+def save_pet_to_db(username, pet_data):
+    """ペットデータをDBに保存"""
+    pets_col.update_one(
+        {'username': username},
+        {'$set': {'pet': pet_data}},
+        upsert=True
+    )
+
+def load_pet_from_db(username):
+    """ペットデータを読み込み"""
+    result = pets_col.find_one({'username': username})
+    if result and 'pet' in result:
+        return result['pet']
+    return {
+        "level": 0, "food": 0, "exp": 0, "coins": 0,
+        "message": "卵から育て始めよう!",
+        "alive": False, "started": False, "pet_type": None, "evolution": 1,
+        "inventory": {'基本の餌': 0, 'おいしい餌': 0, 'プレミアム餌': 0, 'スペシャル餌': 0}
+    }
+
+def save_locations_to_db(username, locations_data):
+    """場所データをDBに保存"""
+    locations_col.update_one(
+        {'username': username},
+        {'$set': {'locations': locations_data}},
+        upsert=True
+    )
+
+def load_locations_from_db(username):
+    """場所データを読み込み"""
+    result = locations_col.find_one({'username': username})
+    if result and 'locations' in result:
+        return result['locations']
+    return {"自宅": "#ef4444", "屋外": "#10b981", "外(屋内)": "#f59e0b", "オンライン": "#8b5cf6", "その他": "#64748b"}
 
 # =============================================================================
 # ユーザーデータ取得ヘルパー関数
@@ -147,36 +137,18 @@ def get_user_locations():
     """現在のユーザーの場所設定を取得"""
     username = session.get("username")
     if not username:
-        return {
-            "自宅": "#ef4444",
-            "屋外": "#10b981",
-            "外(屋内)": "#f59e0b",
-            "オンライン": "#8b5cf6",
-            "その他": "#64748b"
-        }
-    
-    if username not in user_locations:
-        user_locations[username] = {
-            "自宅": "#ef4444",
-            "屋外": "#10b981",
-            "外(屋内)": "#f59e0b",
-            "オンライン": "#8b5cf6",
-            "その他": "#64748b"
-        }
-        save_locations()
-    
-    return user_locations[username]
+        return {"自宅": "#ef4444", "屋外": "#10b981", "外(屋内)": "#f59e0b", "オンライン": "#8b5cf6", "その他": "#64748b"}
+    return load_locations_from_db(username)
 
 def get_user_pokedex():
     """現在のユーザーの図鑑データを取得"""
     username = session.get("username")
     if not username:
         return {"discovered": [], "育成_counts": {}}
-    if username not in pokedex:
-        pokedex[username] = {"discovered": [], "育成_counts": {}}
-    if "育成_counts" not in pokedex[username]:
-        pokedex[username]["育成_counts"] = {}
-    return pokedex[username]
+    data = load_pokedex_from_db(username)
+    if "育成_counts" not in data:
+        data["育成_counts"] = {}
+    return data
 
 def add_to_pokedex(image_name):
     """図鑑に新しいペットを追加"""
@@ -187,7 +159,7 @@ def add_to_pokedex(image_name):
     user_pokedex = get_user_pokedex()
     if image_name not in user_pokedex["discovered"] and not image_name.startswith("egg"):
         user_pokedex["discovered"].append(image_name)
-        save_pokedex()
+        save_pokedex_to_db(username, user_pokedex)
 
 def increment_育成_count(image_name):
     """ペットの育成回数をカウント"""
@@ -199,71 +171,44 @@ def increment_育成_count(image_name):
     if image_name not in user_pokedex["育成_counts"]:
         user_pokedex["育成_counts"][image_name] = 0
     user_pokedex["育成_counts"][image_name] += 1
-    save_pokedex()
+    save_pokedex_to_db(username, user_pokedex)
 
 def get_user_events():
     """現在のユーザーのイベントデータを取得"""
     username = session.get("username")
     if not username:
         return {}
-    if username not in events:
-        events[username] = {}
-    return events[username]
+    return load_events_from_db(username)
 
 def get_user_goals():
     """現在のユーザーの目標データを取得"""
     username = session.get("username")
     if not username:
         return {}
-    if username not in goals:
-        goals[username] = {}
-    return goals[username]
+    return load_goals_from_db(username)
 
 def get_user_pet():
     """現在のユーザーのペットデータを取得"""
     username = session.get("username")
     if not username:
         return {
-            "level": 0, "food": 0, "exp": 0, "coins": 0,  # coinsを追加
+            "level": 0, "food": 0, "exp": 0, "coins": 0,
             "message": "ログインしてペットを育てよう!",
             "alive": False, "started": False, "pet_type": None, "evolution": 1,
-            "inventory": {  # 餌のインベントリを追加
-                '基本の餌': 0,
-                'おいしい餌': 0,
-                'プレミアム餌': 0,
-                'スペシャル餌': 0,
-            }
+            "inventory": {'基本の餌': 0, 'おいしい餌': 0, 'プレミアム餌': 0, 'スペシャル餌': 0}
         }
     
-    if username not in user_pets:
-        user_pets[username] = {
-            "level": 0, "food": 0, "exp": 0, "coins": 0,
-            "message": "卵から育て始めよう!",
-            "alive": False, "started": False, "pet_type": None, "evolution": 1,
-            "inventory": {
-                '基本の餌': 0,
-                'おいしい餌': 0,
-                'プレミアム餌': 0,
-                'スペシャル餌': 0,
-            }
-        }
-        
-    # 既存データにcoinsとinventoryがない場合は追加
-    if "coins" not in user_pets[username]:
-        user_pets[username]["coins"] = 0
-    if "inventory" not in user_pets[username]:
-        user_pets[username]["inventory"] = {
-            '基本の餌': 0,
-            'おいしい餌': 0,
-            'プレミアム餌': 0,
-            'スペシャル餌': 0,
-        }
+    pet = load_pet_from_db(username)
     
-    # 経験値フィールドが存在しない場合は追加
-    if "exp" not in user_pets[username]:
-        user_pets[username]["exp"] = 0
+    # 既存データに不足フィールドを追加
+    if "coins" not in pet:
+        pet["coins"] = 0
+    if "inventory" not in pet:
+        pet["inventory"] = {'基本の餌': 0, 'おいしい餌': 0, 'プレミアム餌': 0, 'スペシャル餌': 0}
+    if "exp" not in pet:
+        pet["exp"] = 0
     
-    return user_pets[username]
+    return pet
 
 # =============================================================================
 # ユーティリティ関数
@@ -277,7 +222,7 @@ def get_weather_data(location):
         
         if response.status_code == 200:
             data = response.json()
-            weather_info = {
+            return {
                 "location": data["name"],
                 "temp": round(data["main"]["temp"], 1),
                 "humidity": data["main"]["humidity"],
@@ -285,9 +230,7 @@ def get_weather_data(location):
                 "description": data["weather"][0]["description"],
                 "icon": data["weather"][0]["icon"]
             }
-            return weather_info
-        else:
-            return None
+        return None
     except Exception as e:
         print(f"Weather API Error: {e}")
         return None
@@ -311,100 +254,50 @@ def generate_event_id(date, user_events):
 # ペットシステム定数
 # =============================================================================
 
-# レベルアップに必要な経験値テーブル
-EXP_TABLE = {
-    0: 5, 1: 7, 2: 10, 3: 14, 4: 20,
-    5: 25, 6: 33, 7: 46, 8: 55, 9: 70,
-}
+EXP_TABLE = {0: 5, 1: 7, 2: 10, 3: 14, 4: 20, 5: 25, 6: 33, 7: 46, 8: 55, 9: 70}
 
 def calculate_success_reward(duration_minutes):
-    """予定達成時のコインの獲得数を計算"""
-    if duration_minutes < 30:
-        return 5
-    elif duration_minutes < 60:
-        return 10
-    elif duration_minutes < 120:
-        return 25
-    elif duration_minutes < 180:
-        return 48
-    else:
-        return 140
+    if duration_minutes < 30: return 5
+    elif duration_minutes < 60: return 10
+    elif duration_minutes < 120: return 25
+    elif duration_minutes < 180: return 48
+    else: return 140
 
 def calculate_failure_penalty(duration_minutes, current_level, pet_type):
-    """予定失敗時のペナルティを計算"""
     death_threshold = 5 if pet_type == 1 else 3
-    
     if current_level <= death_threshold:
         return {"dies": True, "level_down": 0}
     
-    if duration_minutes < 30:
-        level_down = 1
-    elif duration_minutes < 60:
-        level_down = 1
-    elif duration_minutes < 120:
-        level_down = 2
-    elif duration_minutes < 180:
-        level_down = 3
-    else:
-        level_down = 4
+    if duration_minutes < 30: level_down = 1
+    elif duration_minutes < 60: level_down = 1
+    elif duration_minutes < 120: level_down = 2
+    elif duration_minutes < 180: level_down = 3
+    else: level_down = 4
     
     return {"dies": False, "level_down": level_down}
 
-# 進化確率設定（レアリティシステム）
-BIRD_EVOLUTION_WEIGHTS = {
-    1: 18, 2: 13, 3: 13, 4: 13, 5: 8,
-    6: 8, 7: 8, 8: 8, 9: 8, 10: 3,
-}
-
-BEAST_EVOLUTION_WEIGHTS = {
-    1: 30, 2: 25, 3: 20, 4: 8, 5: 4,
-}
-
-WATER_EVOLUTION_WEIGHTS = {
-    1: 30, 2: 15, 3: 10, 4: 7, 5: 5,
-}
-
-FIRE_EVOLUTION_WEIGHTS = {
-    1: 30, 2: 15, 3: 10, 4: 7, 5: 5,
-}
-
-STAR_EVOLUTION_WEIGHTS = {
-    1: 30, 2: 25, 3: 15, 4: 7, 5: 5,
-}
-
-HYBRID_EVOLUTION_WEIGHTS = {
-    1: 30, 2: 25, 3: 10, 4: 7, 5: 3,
-}
-
+# 進化確率設定
 EVOLUTION_WEIGHTS = {
-    1: BIRD_EVOLUTION_WEIGHTS,
-    2: BEAST_EVOLUTION_WEIGHTS,
-    3: WATER_EVOLUTION_WEIGHTS,
-    4: FIRE_EVOLUTION_WEIGHTS,
-    5: STAR_EVOLUTION_WEIGHTS,
-    6: HYBRID_EVOLUTION_WEIGHTS,
+    1: {1: 18, 2: 13, 3: 13, 4: 13, 5: 8, 6: 8, 7: 8, 8: 8, 9: 8, 10: 3},
+    2: {1: 30, 2: 25, 3: 20, 4: 8, 5: 4},
+    3: {1: 30, 2: 15, 3: 10, 4: 7, 5: 5},
+    4: {1: 30, 2: 15, 3: 10, 4: 7, 5: 5},
+    5: {1: 30, 2: 25, 3: 15, 4: 7, 5: 5},
+    6: {1: 30, 2: 25, 3: 10, 4: 7, 5: 3}
 }
 
 def get_evolution_type(pet_type):
-    """重み付けに基づいて進化タイプを抽選"""
     weights = EVOLUTION_WEIGHTS.get(pet_type, {})
     if not weights:
         max_type = 10 if pet_type == 1 else 5
         return random.randint(1, max_type)
-    
-    evolution_types = list(weights.keys())
-    weight_values = list(weights.values())
-    
-    return random.choices(evolution_types, weights=weight_values)[0]
+    return random.choices(list(weights.keys()), weights=list(weights.values()))[0]
 
 def get_rarity_stars(image_name):
-    """ペット画像からレアリティ星を計算"""
-    import re
-    
     bird_match = re.match(r'pet1/lv10_type(\d+)\.gif', image_name)
     if bird_match:
         evo_type = int(bird_match.group(1))
-        weights = BIRD_EVOLUTION_WEIGHTS
+        weights = EVOLUTION_WEIGHTS[1]
         total_weight = sum(weights.values())
         probability = (weights.get(evo_type, 0) / total_weight) * 100
         return calculate_stars_from_probability(probability)
@@ -418,50 +311,37 @@ def get_rarity_stars(image_name):
             total_weight = sum(weights.values())
             probability = (weights.get(evo_type, 0) / total_weight) * 100
             return calculate_stars_from_probability(probability)
-    
     return None
 
 def calculate_stars_from_probability(probability):
-    """出現確率から星の数を計算"""
-    if probability <= 5:
-        return 5
-    elif probability <= 10:
-        return 4
-    elif probability <= 15:
-        return 3
-    elif probability <= 25:
-        return 2
-    else:
-        return 1
+    if probability <= 5: return 5
+    elif probability <= 10: return 4
+    elif probability <= 15: return 3
+    elif probability <= 25: return 2
+    else: return 1
 
 PET_NAMES = {
     "pet1/lv1.gif": "ピヨコン", "pet1/lv2.gif": "フワモコ", "pet1/lv3.gif": "ピョンタ", "pet1/lv4.gif": "コロリン",
     "pet1/lv5.gif": "モフール", "pet1/lv6.gif": "ニャンゴ", "pet1/lv7.gif": "ワンダフ", "pet1/lv8.gif": "ドラゴニ", "pet1/lv9.gif": "フェニックス",
     "pet1/lv10_type1.gif": "キングレオン", "pet1/lv10_type2.gif": "にんじん", "pet1/lv10_type3.gif": "Miro",
-    "pet1/lv10_type4.gif": "ナマタマゴ", "pet1/lv10_type5.gif": "サイケデリック伊藤", 
-    "pet1/lv10_type6.gif": "神害近藤", "pet1/lv10_type7.gif": "P.A.N.Z.E.R.",
-    "pet1/lv10_type8.gif": "モデル815", "pet1/lv10_type9.gif": "エレクトリック高橋", "pet1/lv10_type10.gif": "アルカヴィア",
-    "pet1/death.jpg": "手羽先",
+    "pet1/lv10_type4.gif": "ナマタマゴ", "pet1/lv10_type5.gif": "サイケデリック伊藤", "pet1/lv10_type6.gif": "神害近藤",
+    "pet1/lv10_type7.gif": "P.A.N.Z.E.R.", "pet1/lv10_type8.gif": "モデル815", "pet1/lv10_type9.gif": "エレクトリック高橋",
+    "pet1/lv10_type10.gif": "アルカヴィア", "pet1/death.jpg": "手羽先",
     "pet2/lv1.gif": "コロコロ", "pet2/lv2.gif": "パンパン", "pet2/lv3.gif": "フワリン", "pet2/lv4.gif": "モコモコ",
     "pet2/lv5_type1.gif": "子供のおもちゃ", "pet2/lv5_type2.gif": "神獣冨士岡", "pet2/lv5_type3.gif": "早スギタかりんとう",
-    "pet2/lv5_type4.gif": "翼神龍ブラックドラゴン", "pet2/lv5_type5.gif": "ディオ!ヴァルミナート",
-    "pet2/death.jpg": "丸焼き",
+    "pet2/lv5_type4.gif": "翼神龍ブラックドラゴン", "pet2/lv5_type5.gif": "ディオ!ヴァルミナート", "pet2/death.jpg": "丸焼き",
     "pet3/lv1.gif": "プクプク", "pet3/lv2.gif": "パブパブ", "pet3/lv3.gif": "スイスイ", "pet3/lv4.gif": "グルグル",
     "pet3/lv5_type1.gif": "ハロウィーンキャット", "pet3/lv5_type2.gif": "オーシャン", "pet3/lv5_type3.gif": "タイダル",
-    "pet3/lv5_type4.gif": "チョコレートクッキー", "pet3/lv5_type5.gif": "雷波紋突",
-    "pet3/death.jpg": "干物",
+    "pet3/lv5_type4.gif": "チョコレートクッキー", "pet3/lv5_type5.gif": "雷波紋窓", "pet3/death.jpg": "干物",
     "pet4/lv1.gif": "メラメラ", "pet4/lv2.gif": "ホノホノ", "pet4/lv3.gif": "モエモエ", "pet4/lv4.gif": "ゴウゴウ",
     "pet4/lv5_type1.gif": "ファイアロード", "pet4/lv5_type2.gif": "フレイムキング", "pet4/lv5_type3.gif": "インフェルノ",
-    "pet4/lv5_type4.gif": "ブレイズマスター", "pet4/lv5_type5.gif": "サンバースト",
-    "pet4/death.jpg": "灰",
+    "pet4/lv5_type4.gif": "ブレイズマスター", "pet4/lv5_type5.gif": "サンバースト", "pet4/death.jpg": "灰",
     "pet5/lv1.gif": "巻き物1", "pet5/lv2.gif": "巻き物2", "pet5/lv3.gif": "玉子", "pet5/lv4.gif": "タコ",
-    "pet5/lv5_type1.gif": "スターライト", "pet5/lv5_type2.gif": "雲丹", "pet5/lv5_type3.gif": "流比寿",
-    "pet5/lv5_type4.gif": "サーモン", "pet5/lv5_type5.gif": "いくら",
-    "pet5/death.jpg": "流れ星",
+    "pet5/lv5_type1.gif": "スターライト", "pet5/lv5_type2.gif": "雲丹", "pet5/lv5_type3.gif": "海老寿",
+    "pet5/lv5_type4.gif": "サーモン", "pet5/lv5_type5.gif": "いくら", "pet5/death.jpg": "流れ星",
     "pet6/lv1.gif": "ゴチャゴチャ", "pet6/lv2.gif": "ミックス", "pet6/lv3.gif": "ハイブリ", "pet6/lv4.gif": "カオスン",
     "pet6/lv5_type1.gif": "カクレミコ", "pet6/lv5_type2.gif": "茸影大明神", "pet6/lv5_type3.gif": "茸森帝",
-    "pet6/lv5_type4.gif": "黴魘大権現", "pet6/lv5_type5.gif": "真茸皇マコトノスメラ",
-    "pet6/death.jpg": "肥料",
+    "pet6/lv5_type4.gif": "黴魘大権現", "pet6/lv5_type5.gif": "真茸皇マコトノスメラ", "pet6/death.jpg": "肥料"
 }
 
 PET_TYPES = {
@@ -470,13 +350,10 @@ PET_TYPES = {
     3: {"name": "可愛い系統", "description": "可愛く癒されるペット"},
     4: {"name": "炎系統", "description": "情熱的で力強いペット"},
     5: {"name": "寿司系統", "description": "醤油がベストなペット"},
-    6: {"name": "雑種系統", "description": "個性的で不思議なペット"},
+    6: {"name": "雑種系統", "description": "個性的で不思議なペット"}
 }
 
-user_pets = {}
-
 def get_pet_image():
-    """現在のペットの画像パスを取得"""
     pet = get_user_pet()
     pet_type = pet.get("pet_type")
     
@@ -521,64 +398,42 @@ def shop():
     username = session.get("username")
     pet = get_user_pet()
     
-    # 餌の商品リスト
     foods = [
         {"name": "基本の餌", "price": 1, "emoji": "🌾", "exp": 1},
         {"name": "おいしい餌", "price": 50, "emoji": "🌽", "exp": 3},
         {"name": "プレミアム餌", "price": 100, "emoji": "🍖", "exp": 5},
-        {"name": "スペシャル餌", "price": 200, "emoji": "🎁", "exp": 10},
+        {"name": "スペシャル餌", "price": 200, "emoji": "🍎", "exp": 10}
     ]
     
-    return render_template(
-        "shop.html",
-        pet=pet,
-        foods=foods,
-        username=username,
-        image=get_pet_image(),
-        exp_table=EXP_TABLE
-    )
-
-# ========================================================================
-# 餌購入API
-# ========================================================================
+    return render_template("shop.html", pet=pet, foods=foods, username=username, image=get_pet_image(), exp_table=EXP_TABLE)
 
 @app.route("/buy_food", methods=["POST"])
 def buy_food():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     pet = get_user_pet()
     data = request.get_json()
     food_name = data.get("food_name")
     
-    # 餌の価格設定
-    food_prices = {
-        '基本の餌': 1,
-        'おいしい餌': 50,
-        'プレミアム餌': 100,
-        'スペシャル餌': 200,
-    }
+    food_prices = {'基本の餌': 1, 'おいしい餌': 50, 'プレミアム餌': 100, 'スペシャル餌': 200}
     
     if food_name not in food_prices:
         return jsonify({"error": "無効な餌です"}), 400
     
     price = food_prices[food_name]
     
-    # コインが足りるかチェック
     if pet["coins"] < price:
         return jsonify({"error": "コインが足りません"}), 400
     
-    # 購入処理
     pet["coins"] -= price
     pet["inventory"][food_name] = pet["inventory"].get(food_name, 0) + 1
     pet["message"] = f"『{food_name}』を購入しました!"
     
-    return jsonify({
-        "success": True,
-        "coins": pet["coins"],
-        "inventory": pet["inventory"],
-        "message": pet["message"]
-    })
+    save_pet_to_db(username, pet)
+    
+    return jsonify({"success": True, "coins": pet["coins"], "inventory": pet["inventory"], "message": pet["message"]})
 
 # =============================================================================
 # 認証ルート
@@ -596,15 +451,10 @@ def signup():
         if len(password) < 5:
             return render_template("login.html", error_message="パスワードは5文字以上にしてください")
         
-        if username in users:
+        if get_user_from_db(username):
             return render_template("login.html", error_message="このユーザー名は既に使用されています")
         
-        users[username] = {
-            "password": generate_password_hash(password),
-            "created_at": datetime.now(JST).isoformat()
-        }
-        save_users()
-        
+        save_user_to_db(username, generate_password_hash(password))
         session["username"] = username
         return redirect(url_for("redirect_to_current_month"))
     
@@ -616,7 +466,8 @@ def login():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         
-        if username in users and check_password_hash(users[username]["password"], password):
+        user = get_user_from_db(username)
+        if user and check_password_hash(user["password"], password):
             session["username"] = username
             return redirect(url_for("redirect_to_current_month"))
         else:
@@ -637,7 +488,6 @@ def logout():
 def redirect_to_current_month():
     if "username" not in session:
         return redirect(url_for("login"))
-    
     now = datetime.now(JST)
     return redirect(url_for("index_get", year=now.year, month=now.month))
 
@@ -661,17 +511,13 @@ def index_get(year, month):
     now_time = datetime.now(JST).strftime("%H:%M")
 
     pet = get_user_pet()
-
     month_key = f"{year}-{str(month).zfill(2)}"
     current_goal = user_goals.get(month_key, {"goal": "", "achieved": False})
-
     weather = get_weather_data("Tokyo")
 
     return render_template(
-        "calendar.html",
-        year=year, month=month, weeks=weeks, weeknames=weeknames,
-        events=user_events, today=today, today_events=today_events_sorted,
-        now_time=now_time,
+        "calendar.html", year=year, month=month, weeks=weeks, weeknames=weeknames,
+        events=user_events, today=today, today_events=today_events_sorted, now_time=now_time,
         prev_link=url_for("index_get", year=prev_year, month=prev_month),
         next_link=url_for("index_get", year=next_year, month=next_month),
         pet=pet, image=get_pet_image(), exp_table=EXP_TABLE,
@@ -679,6 +525,7 @@ def index_get(year, month):
         month_key=month_key, weather=weather,
         locations=user_locs, pet_types=PET_TYPES
     )
+    
 
 # =============================================================================
 # イベント管理ルート
@@ -689,6 +536,7 @@ def add_event():
     if "username" not in session:
         return redirect(url_for("login"))
     
+    username = session.get("username")
     user_events = get_user_events()
     date_str = request.form.get("date", "")
     start_time = request.form.get("start_time", "")
@@ -719,7 +567,7 @@ def add_event():
         "event": event_text, "location": location, "done": None
     })
     user_events[date_str].sort(key=lambda x: x["start_time"])
-    save_events()
+    save_events_to_db(username, user_events)
 
     dt = datetime.strptime(date_str, "%Y-%m-%d")
     return redirect(url_for("index_get", year=dt.year, month=dt.month))
@@ -729,6 +577,7 @@ def update_event():
     if "username" not in session:
         return redirect(url_for("login"))
     
+    username = session.get("username")
     user_events = get_user_events()
     date_str = request.form.get("date", "")
     event_id = int(request.form.get("id", 0))
@@ -749,7 +598,7 @@ def update_event():
             ev["end_time"] = new_end_time
             ev["event"] = new_event
             ev["location"] = new_location
-            save_events()
+            save_events_to_db(username, user_events)
             break
 
     dt = datetime.strptime(date_str, "%Y-%m-%d")
@@ -760,6 +609,7 @@ def delete_event():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     user_events = get_user_events()
     date_str = request.form.get("date", "")
     event_id = int(request.form.get("id", 0))
@@ -772,7 +622,7 @@ def delete_event():
     if len(user_events[date_str]) == 0:
         del user_events[date_str]
     
-    save_events()
+    save_events_to_db(username, user_events)
     return jsonify({"success": True})
 
 @app.route("/set_done", methods=["POST"])
@@ -780,6 +630,7 @@ def set_done():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     user_events = get_user_events()
     pet = get_user_pet()
     
@@ -796,9 +647,8 @@ def set_done():
                 return jsonify({"error": "すでに設定済み"}), 400
 
             ev["done"] = True if done_value == "true" else False
-            save_events()
+            save_events_to_db(username, user_events)
             
-            # 予定の時間(分)を計算
             start_time = ev.get("start_time", "00:00")
             end_time = ev.get("end_time", "23:59")
             start_h, start_m = map(int, start_time.split(":"))
@@ -806,16 +656,12 @@ def set_done():
             duration_minutes = (end_h * 60 + end_m) - (start_h * 60 + start_m)
 
             if ev["done"]:
-                # 成功: 時間に応じてコインを付与
                 pet["alive"] = True
                 pet["started"] = True
-                
                 coin_reward = calculate_success_reward(duration_minutes)
                 pet["coins"] += coin_reward
-                
                 pet["message"] = f"タスク完了!コインを{coin_reward}枚獲得!(コイン: {pet['coins']})"
             else:
-                # 失敗: 時間に応じてペナルティを適用
                 pet_type = pet.get("pet_type", 1)
                 penalty = calculate_failure_penalty(duration_minutes, pet["level"], pet_type)
                 
@@ -829,6 +675,8 @@ def set_done():
                     pet["level"] = max(0, pet["level"] - level_down)
                     pet["exp"] = 0
                     pet["message"] = f"できなかった…レベルが{level_down}下がって{pet['level']}に!"
+            
+            save_pet_to_db(username, pet)
             break
     else:
         return jsonify({"error": "該当イベントなし"}), 404
@@ -853,7 +701,6 @@ def set_done():
 def get_locations():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
-    
     locations = get_user_locations()
     return jsonify({"success": True, "locations": locations})
 
@@ -866,9 +713,7 @@ def save_locations_route():
     data = request.get_json()
     locations = data.get("locations", {})
     
-    user_locations[username] = locations
-    save_locations()
-    
+    save_locations_to_db(username, locations)
     return jsonify({"success": True})
 
 @app.route("/set_goal", methods=["POST"])
@@ -876,6 +721,7 @@ def set_goal():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     user_goals = get_user_goals()
     
     if request.is_json:
@@ -890,16 +736,16 @@ def set_goal():
         return jsonify({"error": "目標を入力してください"}), 400
     
     user_goals[month_key] = {"goal": goal_text, "achieved": False}
-    save_goals()
+    save_goals_to_db(username, user_goals)
     
     return jsonify({"success": True, "goal": goal_text})
-
 
 @app.route("/achieve_goal", methods=["POST"])
 def achieve_goal():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     user_goals = get_user_goals()
     pet = get_user_pet()
     
@@ -916,18 +762,14 @@ def achieve_goal():
         return jsonify({"error": "すでに達成済みです"}), 400
     
     user_goals[month_key]["achieved"] = True
-    save_goals()
+    save_goals_to_db(username, user_goals)
     
-    # 月目標達成で1500コイン付与
     coin_reward = 1500
     pet["coins"] += coin_reward
     pet["message"] = f"月目標達成おめでとう!コインを{coin_reward}枚獲得!(コイン: {pet['coins']})"
+    save_pet_to_db(username, pet)
     
-    return jsonify({
-        "success": True,
-        "coins": pet["coins"],
-        "message": pet["message"]
-    })
+    return jsonify({"success": True, "coins": pet["coins"], "message": pet["message"]})
 
 # =============================================================================
 # ペット管理ルート
@@ -948,12 +790,9 @@ def pet_detail():
         img_name = f"pet1/lv{level}.gif"
         育成_count = user_pokedex["育成_counts"].get(img_name, 0)
         all_pets.append({
-            "image": img_name,
-            "name": PET_NAMES.get(img_name, "???"),
+            "image": img_name, "name": PET_NAMES.get(img_name, "???"),
             "discovered": img_name in user_pokedex["discovered"],
-            "pet_type": 1,
-            "育成_count": 育成_count,
-            "rarity": None
+            "pet_type": 1, "育成_count": 育成_count, "rarity": None
         })
     
     for evo_type in range(1, 11):
@@ -961,23 +800,17 @@ def pet_detail():
         育成_count = user_pokedex["育成_counts"].get(img_name, 0)
         rarity = get_rarity_stars(img_name)
         all_pets.append({
-            "image": img_name,
-            "name": PET_NAMES.get(img_name, "???"),
+            "image": img_name, "name": PET_NAMES.get(img_name, "???"),
             "discovered": img_name in user_pokedex["discovered"],
-            "pet_type": 1,
-            "育成_count": 育成_count,
-            "rarity": rarity
+            "pet_type": 1, "育成_count": 育成_count, "rarity": rarity
         })
     
     img_name = "pet1/death.jpg"
     育成_count = user_pokedex["育成_counts"].get(img_name, 0)
     all_pets.append({
-        "image": img_name,
-        "name": PET_NAMES.get(img_name, "???"),
+        "image": img_name, "name": PET_NAMES.get(img_name, "???"),
         "discovered": img_name in user_pokedex["discovered"],
-        "pet_type": 1,
-        "育成_count": 育成_count,
-        "rarity": None
+        "pet_type": 1, "育成_count": 育成_count, "rarity": None
     })
     
     # ペット2-6系統(各10種類)
@@ -986,12 +819,9 @@ def pet_detail():
             img_name = f"pet{pet_type}/lv{level}.gif"
             育成_count = user_pokedex["育成_counts"].get(img_name, 0)
             all_pets.append({
-                "image": img_name,
-                "name": PET_NAMES.get(img_name, "???"),
+                "image": img_name, "name": PET_NAMES.get(img_name, "???"),
                 "discovered": img_name in user_pokedex["discovered"],
-                "pet_type": pet_type,
-                "育成_count": 育成_count,
-                "rarity": None
+                "pet_type": pet_type, "育成_count": 育成_count, "rarity": None
             })
         
         for evo_type in range(1, 6):
@@ -999,32 +829,24 @@ def pet_detail():
             育成_count = user_pokedex["育成_counts"].get(img_name, 0)
             rarity = get_rarity_stars(img_name)
             all_pets.append({
-                "image": img_name,
-                "name": PET_NAMES.get(img_name, "???"),
+                "image": img_name, "name": PET_NAMES.get(img_name, "???"),
                 "discovered": img_name in user_pokedex["discovered"],
-                "pet_type": pet_type,
-                "育成_count": 育成_count,
-                "rarity": rarity
+                "pet_type": pet_type, "育成_count": 育成_count, "rarity": rarity
             })
         
         img_name = f"pet{pet_type}/death.jpg"
         育成_count = user_pokedex["育成_counts"].get(img_name, 0)
         all_pets.append({
-            "image": img_name,
-            "name": PET_NAMES.get(img_name, "???"),
+            "image": img_name, "name": PET_NAMES.get(img_name, "???"),
             "discovered": img_name in user_pokedex["discovered"],
-            "pet_type": pet_type,
-            "育成_count": 育成_count,
-            "rarity": None
+            "pet_type": pet_type, "育成_count": 育成_count, "rarity": None
         })
     
     pet = get_user_pet()
     
     return render_template(
-        "pet_detail.html",
-        pet=pet, image=get_pet_image(), exp_table=EXP_TABLE,
-        all_pets=all_pets, pet_names=PET_NAMES, username=username,
-        pet_types=PET_TYPES
+        "pet_detail.html", pet=pet, image=get_pet_image(), exp_table=EXP_TABLE,
+        all_pets=all_pets, pet_names=PET_NAMES, username=username, pet_types=PET_TYPES
     )
 
 @app.route("/start", methods=["POST"])
@@ -1032,6 +854,7 @@ def start():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     data = request.get_json()
     pet_type = data.get("pet_type")
     
@@ -1044,6 +867,8 @@ def start():
         "food": 0, "exp": 0, "evolution": 1, "pet_type": pet_type,
         "message": "育成スタート!予定をこなして餌を集めよう!"
     })
+    save_pet_to_db(username, pet)
+    
     return jsonify({
         "alive": pet["alive"], "started": pet["started"],
         "level": pet["level"], "food": pet["food"],
@@ -1057,6 +882,7 @@ def feed():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     pet = get_user_pet()
     data = request.get_json() if request.is_json else {}
     food_name = data.get("food_name", "基本の餌")
@@ -1070,44 +896,28 @@ def feed():
     if pet["level"] >= max_level:
         pet["message"] = "最終進化に到達!これ以上は成長できません。"
         return jsonify({
-            "message": pet["message"], 
-            "image": get_pet_image(),
-            "exp": pet["exp"], 
-            "next_exp": 0,
-            "level": pet["level"],
+            "message": pet["message"], "image": get_pet_image(),
+            "exp": pet["exp"], "next_exp": 0, "level": pet["level"],
             "inventory": pet["inventory"]
         })
 
-    # インベントリに餌があるかチェック
     if pet["inventory"].get(food_name, 0) <= 0:
         pet["message"] = f"{food_name}がありません!"
         return jsonify({
-            "message": pet["message"],
-            "image": get_pet_image(),
-            "exp": pet["exp"],
-            "next_exp": EXP_TABLE.get(pet["level"], 0),
-            "level": pet["level"],
-            "inventory": pet["inventory"]
+            "message": pet["message"], "image": get_pet_image(),
+            "exp": pet["exp"], "next_exp": EXP_TABLE.get(pet["level"], 0),
+            "level": pet["level"], "inventory": pet["inventory"]
         })
 
-    # 餌の経験値設定
-    food_exp = {
-        '基本の餌': 1,
-        'おいしい餌': 3,
-        'プレミアム餌': 5,
-        'スペシャル餌': 10,
-    }
-    
+    food_exp = {'基本の餌': 1, 'おいしい餌': 3, 'プレミアム餌': 5, 'スペシャル餌': 10}
     exp_gain = food_exp.get(food_name, 1)
     
-    # 餌を消費
     pet["inventory"][food_name] -= 1
     pet["exp"] += exp_gain
     
     start_level = pet["level"]
     levels_gained = 0
     
-    # 飛び級処理: 経験値が複数レベル分ある場合は連続してレベルアップ
     while pet["level"] < max_level:
         required_exp = EXP_TABLE.get(pet["level"], 999)
         
@@ -1115,17 +925,10 @@ def feed():
             pet["level"] += 1
             pet["exp"] -= required_exp
             levels_gained += 1
-            
-            # 各レベルで進化画像を記録（ただし育成回数はカウントしない）
-            # if pet["level"] < max_level:
-            #     temp_image = get_pet_image()
-            #     increment_育成_count(temp_image)
         else:
             break
     
-    # レベルアップした場合
     if levels_gained > 0:
-        # 最終進化の場合は進化タイプを決定
         if pet["level"] == max_level:
             pet["evolution"] = get_evolution_type(pet_type)
             pet["message"] = f"最終進化!タイプ{pet['evolution']}に進化した!!!(Lv.{start_level}→Lv.{pet['level']})"
@@ -1134,44 +937,37 @@ def feed():
         else:
             pet["message"] = f"{levels_gained}レベルアップ!!!(Lv.{start_level}→Lv.{pet['level']})"
         
-        # 最終的な進化後の画像を取得して育成回数をカウント（1回だけ）
         evolved_image = get_pet_image()
         increment_育成_count(evolved_image)
         
+        save_pet_to_db(username, pet)
+        
         return jsonify({
-            "level": pet["level"],
-            "exp": pet["exp"], 
+            "level": pet["level"], "exp": pet["exp"], 
             "next_exp": EXP_TABLE.get(pet["level"], 0) if pet["level"] < max_level else 0,
-            "message": pet["message"], 
-            "image": evolved_image,
-            "pet_type": pet_type,
-            "evolution": pet.get("evolution", 1),
-            "inventory": pet["inventory"],
-            "levels_gained": levels_gained,
+            "message": pet["message"], "image": evolved_image,
+            "pet_type": pet_type, "evolution": pet.get("evolution", 1),
+            "inventory": pet["inventory"], "levels_gained": levels_gained,
             "start_level": start_level
         })
     else:
-        # レベルアップしなかった場合
         required_exp = EXP_TABLE.get(pet["level"], 0)
         pet["message"] = f"経験値+{exp_gain}! (EXP: {pet['exp']}/{required_exp})"
+        save_pet_to_db(username, pet)
 
     next_exp = EXP_TABLE.get(pet["level"], 0)
-
     return jsonify({
-        "level": pet["level"],
-        "exp": pet["exp"], 
-        "next_exp": next_exp,
-        "message": pet["message"], 
-        "image": get_pet_image(),
+        "level": pet["level"], "exp": pet["exp"], "next_exp": next_exp,
+        "message": pet["message"], "image": get_pet_image(),
         "inventory": pet["inventory"]
     })
-    
-    
+
 @app.route("/revive", methods=["POST"])
 def revive():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     data = request.get_json()
     pet_type = data.get("pet_type")
     
@@ -1186,6 +982,8 @@ def revive():
         "food": current_food, "exp": 0, "evolution": 1, "pet_type": pet_type,
         "message": f"卵から再スタート!餌は{current_food}個持っているよ!"
     })
+    save_pet_to_db(username, pet)
+    
     return jsonify({
         "alive": pet["alive"], "started": pet["started"],
         "image": get_pet_image(), "message": pet["message"],
@@ -1198,18 +996,21 @@ def reset():
     if "username" not in session:
         return jsonify({"error": "未ログイン"}), 401
     
+    username = session.get("username")
     pet = get_user_pet()
     pet.update({
         "alive": False, "started": False, "level": 0,
         "food": 0, "exp": 0, "evolution": 1, "pet_type": None,
         "message": "リセットしました。卵から始めよう!"
     })
+    save_pet_to_db(username, pet)
+    
     return jsonify({
         "alive": pet["alive"], "started": pet["started"],
         "image": "pet1/egg.jpg", "message": pet["message"],
         "food": 0, "exp": 0, "next_exp": EXP_TABLE[0]
     })
-    
+
 @app.route('/static/manifest.json')
 def manifest():
     return send_from_directory('static', 'manifest.json')
@@ -1219,6 +1020,5 @@ def manifest():
 # =============================================================================
 
 if __name__ == "__main__":
-    # Render用のポート設定
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, host="0.0.0.0", port=port)
