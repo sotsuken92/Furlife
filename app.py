@@ -18,7 +18,7 @@ JST = pytz.timezone('Asia/Tokyo')
 # =============================================================================
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "8933")
+app.secret_key = os.environ.get("SECRET_KEY", "8rt(fyika&^lso2l7os4-%kuk^-_af-fskpnu@*^^j#v6pujoh")
 
 # MongoDB接続
 MONGODB_URI = os.environ.get('mongodb+srv://unkotyan0209_db_user:rS2EeA5auXdJmdR4')
