@@ -9,6 +9,7 @@ import random
 import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
+import traceback  # 追加
 
 # 日本時間のタイムゾーン設定
 JST = pytz.timezone('Asia/Tokyo')
@@ -20,13 +21,24 @@ JST = pytz.timezone('Asia/Tokyo')
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "8rt(fyika&^lso2l7os4-%kuk^-_af-fskpnu@*^^j#v6pujoh")
 
-# MongoDB接続
+# MongoDB接続（エラーハンドリング追加）
 MONGODB_URI = os.environ.get('MONGODB_URI')
 if not MONGODB_URI:
+    print("ERROR: MONGODB_URI environment variable is not set")
     raise ValueError("MONGODB_URI environment variable is not set")
 
-client = MongoClient(MONGODB_URI)
-db = client['furlife']
+try:
+    print(f"Attempting to connect to MongoDB...")
+    # タイムアウト設定を追加
+    client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+    # 接続テスト
+    client.admin.command('ping')
+    print("MongoDB connection successful!")
+    db = client['furlife']
+except Exception as e:
+    print(f"ERROR: Failed to connect to MongoDB: {str(e)}")
+    print(traceback.format_exc())
+    raise
 
 # コレクション定義
 users_col = db['users']
@@ -40,20 +52,33 @@ locations_col = db['locations']
 WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY", "YOUR_API_KEY_HERE")
 
 # =============================================================================
-# データ保存・読み込み関数（MongoDB版）
+# データ保存・読み込み関数(MongoDB版)
 # =============================================================================
 
 def save_user_to_db(username, password_hash):
     """ユーザーをDBに保存"""
-    users_col.update_one(
-        {'username': username},
-        {'$set': {'password': password_hash, 'created_at': datetime.now(JST).isoformat()}},
-        upsert=True
-    )
+    try:
+        users_col.update_one(
+            {'username': username},
+            {'$set': {'password': password_hash, 'created_at': datetime.now(JST).isoformat()}},
+            upsert=True
+        )
+        print(f"User saved successfully: {username}")
+    except Exception as e:
+        print(f"ERROR saving user: {str(e)}")
+        print(traceback.format_exc())
+        raise
 
 def get_user_from_db(username):
     """ユーザー情報を取得"""
-    return users_col.find_one({'username': username})
+    try:
+        user = users_col.find_one({'username': username})
+        print(f"User lookup: {username} - Found: {user is not None}")
+        return user
+    except Exception as e:
+        print(f"ERROR getting user: {str(e)}")
+        print(traceback.format_exc())
+        raise
 
 def save_events_to_db(username, events_data):
     """イベントデータをDBに保存"""
@@ -436,42 +461,58 @@ def buy_food():
     return jsonify({"success": True, "coins": pet["coins"], "inventory": pet["inventory"], "message": pet["message"]})
 
 # =============================================================================
-# 認証ルート
+# 認証ルート（エラーハンドリング強化）
 # =============================================================================
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-        
-        if not username or not password:
-            return render_template("login.html", error_message="ユーザー名とパスワードを入力してください")
-        
-        if len(password) < 5:
-            return render_template("login.html", error_message="パスワードは5文字以上にしてください")
-        
-        if get_user_from_db(username):
-            return render_template("login.html", error_message="このユーザー名は既に使用されています")
-        
-        save_user_to_db(username, generate_password_hash(password))
-        session["username"] = username
-        return redirect(url_for("redirect_to_current_month"))
+        try:
+            username = request.form.get("username", "").strip()
+            password = request.form.get("password", "")
+            
+            print(f"Signup attempt: username={username}")
+            
+            if not username or not password:
+                return render_template("login.html", error_message="ユーザー名とパスワードを入力してください")
+            
+            if len(password) < 5:
+                return render_template("login.html", error_message="パスワードは5文字以上にしてください")
+            
+            if get_user_from_db(username):
+                return render_template("login.html", error_message="このユーザー名は既に使用されています")
+            
+            save_user_to_db(username, generate_password_hash(password))
+            session["username"] = username
+            return redirect(url_for("redirect_to_current_month"))
+            
+        except Exception as e:
+            print(f"ERROR in signup: {str(e)}")
+            print(traceback.format_exc())
+            return render_template("login.html", error_message=f"サーバーエラーが発生しました: {str(e)}")
     
     return render_template("login.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-        
-        user = get_user_from_db(username)
-        if user and check_password_hash(user["password"], password):
-            session["username"] = username
-            return redirect(url_for("redirect_to_current_month"))
-        else:
-            return render_template("login.html", error_message="ユーザー名またはパスワードが間違っています")
+        try:
+            username = request.form.get("username", "").strip()
+            password = request.form.get("password", "")
+            
+            print(f"Login attempt: username={username}")
+            
+            user = get_user_from_db(username)
+            if user and check_password_hash(user["password"], password):
+                session["username"] = username
+                return redirect(url_for("redirect_to_current_month"))
+            else:
+                return render_template("login.html", error_message="ユーザー名またはパスワードが間違っています")
+                
+        except Exception as e:
+            print(f"ERROR in login: {str(e)}")
+            print(traceback.format_exc())
+            return render_template("login.html", error_message=f"サーバーエラーが発生しました: {str(e)}")
     
     return render_template("login.html")
 
@@ -1021,4 +1062,4 @@ def manifest():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(debug=True, host="0.0.0.0", port=port)
