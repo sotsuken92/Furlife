@@ -5,15 +5,23 @@
   <title>Furlife - ログイン / 新規登録</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="/static/css/login.css">
+  <!-- PWA用メタタグ -->
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Furlife">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/images/icon-192.png">
 </head>
+
 <body>
   <div class="container">
     
     <!-- ========================================================================
-        左パネル（アプリ紹介）
+        左パネル(アプリ紹介)
         ======================================================================== -->
     <div class="left-panel">
-      <div class="logo"> Furlife</div>
+      <div class="logo">$D83D$DC3E Furlife</div>
       <div class="tagline">
         タスク管理とペット育成を組み合わせた<br>
         新しいタスク管理アプリケーション
@@ -39,21 +47,26 @@
     </div>
 
     <!-- ========================================================================
-        右パネル（ログイン/登録フォーム）
+        右パネル(ログイン/登録フォーム)
         ======================================================================== -->
     <div class="right-panel">
       
       <!-- タブ -->
       <div class="tabs">
-        <button class="tab active" data-tab="login">ログイン</button>
-        <button class="tab" data-tab="signup">新規登録</button>
+        <button class="tab {% if not signup_mode %}active{% endif %}" data-tab="login">ログイン</button>
+        <button class="tab {% if signup_mode %}active{% endif %}" data-tab="signup">新規登録</button>
       </div>
 
       <!-- ログインフォーム -->
-      <div id="login-content" class="form-content active">
+      <div id="login-content" class="form-content {% if not signup_mode %}active{% endif %}">
         <form method="POST" action="{{ url_for('login') }}">
-          {% if error_message and request.endpoint == 'login' %}
-          <div class="alert">{{ error_message }}</div>
+          {% if error_message and not signup_mode %}
+          <div class="error-message">
+            <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ error_message }}</span>
+          </div>
           {% endif %}
           
           <div class="form-group">
@@ -71,10 +84,15 @@
       </div>
 
       <!-- 新規登録フォーム -->
-      <div id="signup-content" class="form-content">
-        <form method="POST" action="{{ url_for('signup') }}">
-          {% if error_message and request.endpoint == 'signup' %}
-          <div class="alert">{{ error_message }}</div>
+      <div id="signup-content" class="form-content {% if signup_mode %}active{% endif %}">
+        <form method="POST" action="{{ url_for('signup') }}" id="signup-form">
+          {% if error_message and signup_mode %}
+          <div class="error-message">
+            <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ error_message }}</span>
+          </div>
           {% endif %}
           
           <div class="form-group">
@@ -84,7 +102,27 @@
           
           <div class="form-group">
             <label class="form-label">パスワード</label>
-            <input type="password" name="password" class="form-input" placeholder="5文字以上で入力" required minlength="5">
+            <input type="password" name="password" id="signup-password" class="form-input" placeholder="英字と数字を含む5文字以上" required minlength="5">
+            <div class="password-requirements">
+              <div class="requirement" id="req-length">
+                <svg class="req-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span>5文字以上</span>
+              </div>
+              <div class="requirement" id="req-alpha">
+                <svg class="req-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span>英字を含む</span>
+              </div>
+              <div class="requirement" id="req-digit">
+                <svg class="req-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span>数字を含む</span>
+              </div>
+            </div>
           </div>
           
           <button type="submit" class="btn-submit">新規登録</button>
@@ -95,5 +133,20 @@
   </div>
 
   <script src="/static/js/login.js"></script>
+  
+  <script>
+  // Service Worker登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/js/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker登録成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker登録失敗:', error);
+        });
+    });
+  }
+  </script>
 </body>
 </html>

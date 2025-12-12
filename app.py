@@ -1,7 +1,14 @@
+from flask import send_from_directory
 from flask import Flask, request, redirect, url_for, jsonify, render_template, session
 import json
 import re
 from datetime import datetime
+from datetime import datetime
+import pytz
+
+# 日本時間のタイムゾーン設定
+JST = pytz.timezone('Asia/Tokyo')
+
 import os
 import calendar
 import random
@@ -585,17 +592,32 @@ def signup():
         password = request.form.get("password", "")
         
         if not username or not password:
-            return render_template("login.html", error_message="ユーザー名とパスワードを入力してください")
+            return render_template("login.html", 
+                error_message="ユーザー名とパスワードを入力してください",
+                signup_mode=True)
         
         if len(password) < 5:
-            return render_template("login.html", error_message="パスワードは5文字以上にしてください")
+            return render_template("login.html", 
+                error_message="パスワードは5文字以上にしてください",
+                signup_mode=True)
+        
+        # 英字と数字の両方が含まれているかチェック
+        has_alpha = any(c.isalpha() for c in password)
+        has_digit = any(c.isdigit() for c in password)
+        
+        if not (has_alpha and has_digit):
+            return render_template("login.html", 
+                error_message="パスワードは英字と数字を両方含む必要があります",
+                signup_mode=True)
         
         if username in users:
-            return render_template("login.html", error_message="このユーザー名は既に使用されています")
+            return render_template("login.html", 
+                error_message="このユーザー名は既に使用されています",
+                signup_mode=True)
         
         users[username] = {
             "password": generate_password_hash(password),
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now(JST).isoformat()
         }
         save_users()
         
@@ -632,7 +654,7 @@ def redirect_to_current_month():
     if "username" not in session:
         return redirect(url_for("login"))
     
-    now = datetime.now()
+    now = datetime.now(JST)
     return redirect(url_for("index_get", year=now.year, month=now.month))
 
 @app.route("/calendar/<int:year>/<int:month>")
@@ -646,13 +668,13 @@ def index_get(year, month):
     user_locs = get_user_locations()
     
     weeks, weeknames = get_month_calendar(year, month)
-    today = datetime.today().strftime("%Y-%m-%d")
+    today = datetime.now(JST).strftime("%Y-%m-%d")
     today_events = user_events.get(today, [])
     today_events_sorted = sorted(today_events, key=lambda x: x.get("start_time", x.get("time", "00:00")))
 
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
     next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
-    now_time = datetime.now().strftime("%H:%M")
+    now_time = datetime.now(JST).strftime("%H:%M")
 
     pet = get_user_pet()
 
@@ -696,8 +718,8 @@ def add_event():
     if start_time >= end_time:
         return "終了時間は開始時間より後にしてください", 400
 
-    today_str = datetime.today().strftime("%Y-%m-%d")
-    now_time_str = datetime.now().strftime("%H:%M")
+    today_str = datetime.now(JST).strftime("%Y-%m-%d")
+    now_time_str = datetime.now(JST).strftime("%H:%M")
 
     if date_str < today_str:
         return "過去の日付の予定は追加できません", 400
@@ -1203,10 +1225,16 @@ def reset():
         "image": "pet1/egg.jpg", "message": pet["message"],
         "food": 0, "exp": 0, "next_exp": EXP_TABLE[0]
     })
+    
+@app.route('/static/manifest.json')
+def manifest():
+    return send_from_directory('static', 'manifest.json')
 
 # =============================================================================
 # アプリケーション起動
 # =============================================================================
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    # Render用のポート設定
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host="0.0.0.0", port=port)
