@@ -1,13 +1,7 @@
-from flask import send_from_directory
 from flask import Flask, request, redirect, url_for, jsonify, render_template, session
 import json
 import re
 from datetime import datetime
-import pytz
-
-# 日本時間のタイムゾーン設定
-JST = pytz.timezone('Asia/Tokyo')
-
 import os
 import calendar
 import random
@@ -523,10 +517,10 @@ def shop():
     
     # 餌の商品リスト
     foods = [
-        {"name": "基本の餌", "price": 1, "emoji": "🌾", "exp": 1},
-        {"name": "おいしい餌", "price": 50, "emoji": "🌽", "exp": 3},
-        {"name": "プレミアム餌", "price": 100, "emoji": "🍖", "exp": 5},
-        {"name": "スペシャル餌", "price": 200, "emoji": "🎁", "exp": 10},
+        {"name": "基本の餌", "price": 1, "emoji": "$D83C$DF3E", "exp": 1},
+        {"name": "おいしい餌", "price": 50, "emoji": "$D83C$DF3D", "exp": 3},
+        {"name": "プレミアム餌", "price": 100, "emoji": "$D83C$DF56", "exp": 5},
+        {"name": "スペシャル餌", "price": 200, "emoji": "$D83C$DF81", "exp": 10},
     ]
     
     return render_template(
@@ -601,7 +595,7 @@ def signup():
         
         users[username] = {
             "password": generate_password_hash(password),
-            "created_at": datetime.now(JST).isoformat()
+            "created_at": datetime.now().isoformat()
         }
         save_users()
         
@@ -638,7 +632,7 @@ def redirect_to_current_month():
     if "username" not in session:
         return redirect(url_for("login"))
     
-    now = datetime.now(JST)
+    now = datetime.now()
     return redirect(url_for("index_get", year=now.year, month=now.month))
 
 @app.route("/calendar/<int:year>/<int:month>")
@@ -652,13 +646,13 @@ def index_get(year, month):
     user_locs = get_user_locations()
     
     weeks, weeknames = get_month_calendar(year, month)
-    today = datetime.now(JST).strftime("%Y-%m-%d")
+    today = datetime.today().strftime("%Y-%m-%d")
     today_events = user_events.get(today, [])
     today_events_sorted = sorted(today_events, key=lambda x: x.get("start_time", x.get("time", "00:00")))
 
     prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
     next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
-    now_time = datetime.now(JST).strftime("%H:%M")
+    now_time = datetime.now().strftime("%H:%M")
 
     pet = get_user_pet()
 
@@ -702,8 +696,8 @@ def add_event():
     if start_time >= end_time:
         return "終了時間は開始時間より後にしてください", 400
 
-    today_str = datetime.now(JST).strftime("%Y-%m-%d")
-    now_time_str = datetime.now(JST).strftime("%H:%M")
+    today_str = datetime.today().strftime("%Y-%m-%d")
+    now_time_str = datetime.now().strftime("%H:%M")
 
     if date_str < today_str:
         return "過去の日付の予定は追加できません", 400
@@ -1209,16 +1203,10 @@ def reset():
         "image": "pet1/egg.jpg", "message": pet["message"],
         "food": 0, "exp": 0, "next_exp": EXP_TABLE[0]
     })
-    
-@app.route('/static/manifest.json')
-def manifest():
-    return send_from_directory('static', 'manifest.json')
 
 # =============================================================================
 # アプリケーション起動
 # =============================================================================
 
 if __name__ == "__main__":
-    # Render用のポート設定
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(debug=True, host="0.0.0.0")
