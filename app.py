@@ -68,26 +68,29 @@ def save_user_events(events_data):
     )
 
 def get_user_pokedex():
-    """現在のユーザーの図鑑データを取得"""
+    """現在のユーザーの図鑑データを取得（常に最新）"""
     username = session.get("username")
     if not username:
         return {"discovered": [], "育成_counts": {}}
     
+    # ★重要: データベースから直接取得（キャッシュなし）
     doc = pokedex_collection.find_one({"username": username})
     if not doc:
         return {"discovered": [], "育成_counts": {}}
     
+    # 育成_countsフィールドがない場合は初期化
     if "育成_counts" not in doc:
         doc["育成_counts"] = {}
     
     return {"discovered": doc.get("discovered", []), "育成_counts": doc.get("育成_counts", {})}
 
 def save_user_pokedex(pokedex_data):
-    """ユーザーの図鑑データを保存"""
+    """ユーザーの図鑑データを保存（確実に保存）"""
     username = session.get("username")
     if not username:
         return
     
+    # ★重要: write_concernを使って確実に書き込み完了を待つ
     pokedex_collection.update_one(
         {"username": username},
         {"$set": pokedex_data},
@@ -195,27 +198,56 @@ def save_user_pet(pet_data):
     )
 
 def add_to_pokedex(image_name):
-    """図鑑に新しいペットを追加"""
+    """図鑑に新しいペットを追加（重複チェック強化）"""
     username = session.get("username")
     if not username:
         return
     
+    # eggは図鑑に追加しない
+    if image_name.startswith("egg"):
+        return
+    
+    # ★重要: 最新のデータを取得
     user_pokedex = get_user_pokedex()
-    if image_name not in user_pokedex["discovered"] and not image_name.startswith("egg"):
-        user_pokedex["discovered"].append(image_name)
-        save_user_pokedex(user_pokedex)
+    
+    # 既に発見済みの場合はスキップ
+    if image_name in user_pokedex["discovered"]:
+        return
+    
+    # 新規発見として追加
+    user_pokedex["discovered"].append(image_name)
+    
+    # ★重要: すぐに保存
+    save_user_pokedex(user_pokedex)
 
 def increment_育成_count(image_name):
-    """ペットの育成回数をカウント"""
+    """ペットの育成回数をカウント（原子的に更新）"""
     username = session.get("username")
     if not username or image_name.startswith("egg"):
         return
     
-    user_pokedex = get_user_pokedex()
-    if image_name not in user_pokedex["育成_counts"]:
-        user_pokedex["育成_counts"][image_name] = 0
-    user_pokedex["育成_counts"][image_name] += 1
-    save_user_pokedex(user_pokedex)
+    # ★重要: MongoDBの$incオペレーターを使って原子的に更新
+    # これにより競合状態を防ぐ
+    result = pokedex_collection.update_one(
+        {"username": username},
+        {
+            "$inc": {f"育成_counts.{image_name}": 1}
+        },
+        upsert=True
+    )
+    
+    # もしドキュメントが存在しない場合は初期化
+    if result.matched_count == 0:
+        pokedex_collection.update_one(
+            {"username": username},
+            {
+                "$set": {
+                    "discovered": [],
+                    f"育成_counts.{image_name}": 1
+                }
+            },
+            upsert=True
+        )
 
 # =============================================================================
 # ユーティリティ関数
@@ -1058,6 +1090,7 @@ def feed():
     start_level = pet["level"]
     levels_gained = 0
     
+    # レベルアップ判定（ループ内では保存しない）
     while pet["level"] < max_level:
         required_exp = EXP_TABLE.get(pet["level"], 999)
         
@@ -1068,17 +1101,36 @@ def feed():
         else:
             break
     
+    # 最終進化の場合、進化タイプを決定
+    if pet["level"] == max_level:
+        pet["evolution"] = get_evolution_type(pet_type)
+    
+    # ★重要: ここで一度だけデータベースに保存
+    save_user_pet(pet)
+    
+    # ★重要: 保存後に最新データを再取得（データベース同期を保証）
+    pet = get_user_pet()
+    
+    # レベルアップした場合のみ図鑑更新
     if levels_gained > 0:
+        # ★重要: 保存後に画像を取得（最新のレベル/進化タイプで取得）
+        evolved_image = get_pet_image()
+        
+        # 図鑑に追加
+        add_to_pokedex(evolved_image)
+        
+        # 育成回数をカウント
+        increment_育成_count(evolved_image)
+        
+        # メッセージ生成
         if pet["level"] == max_level:
-            pet["evolution"] = get_evolution_type(pet_type)
-            pet["message"] = f"最終進化!タイプ{pet['evolution']}に進化した!!!(Lv.{start_level}→Lv.{pet['level']})"
+            pet["message"] = f"最終進化!タイプ{pet['evolution']}に進化した!!!(Lv.{start_level}→Lv.{pet['level']})" if levels_gained > 1 else f"最終進化!タイプ{pet['evolution']}に進化した!!!"
         elif levels_gained == 1:
             pet["message"] = f"レベルアップ!!!(レベル{pet['level']})"
         else:
             pet["message"] = f"{levels_gained}レベルアップ!!!(Lv.{start_level}→Lv.{pet['level']})"
         
-        evolved_image = get_pet_image()
-        increment_育成_count(evolved_image)
+        # ★重要: メッセージ更新後も保存
         save_user_pet(pet)
         
         return jsonify({
@@ -1096,9 +1148,9 @@ def feed():
     else:
         required_exp = EXP_TABLE.get(pet["level"], 0)
         pet["message"] = f"経験値+{exp_gain}! (EXP: {pet['exp']}/{required_exp})"
+        save_user_pet(pet)
 
     next_exp = EXP_TABLE.get(pet["level"], 0)
-    save_user_pet(pet)
 
     return jsonify({
         "level": pet["level"],

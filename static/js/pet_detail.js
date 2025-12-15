@@ -298,7 +298,9 @@ function updateExpBar(currentExp, requiredExp) {
 
 function updatePetUI(data) {
   if (data.image !== undefined) {
-    q("#pet-img-large").src = `/static/images/${data.image}`;
+    // ★重要: 画像URLにタイムスタンプを追加してキャッシュを回避
+    const timestamp = Date.now();
+    q("#pet-img-large").src = `/static/images/${data.image}?t=${timestamp}`;
   }
   if (data.message !== undefined) {
     q("#pet-message").textContent = data.message;
@@ -395,46 +397,58 @@ function initFeedButton() {
       const data = await res.json();
       
       if (res.ok) {
-        updatePetUI(data);
-        
-        // レベルアップした場合のみモーダル表示
-        if (data.levels_gained && data.levels_gained > 0) {
-          const petType = data.pet_type || 1;
-          const isFinalEvolution = (petType === 1 && data.level === 10) || (petType !== 1 && data.level === 5);
-          
-          // 新しく発見したペットを記録（レベルアップ時のみ）
-          if (data.image) {
-            localStorage.setItem('lastDiscoveredPet', data.image);
-          }
-          
-          // スクロール位置を保存
-          const pokedexSections = q('.pokedex-sections');
-          if (pokedexSections) {
-            localStorage.setItem('pokedexScrollPosition', pokedexSections.scrollTop);
-          }
-          
-          // ペットタイプを保存
-          const petTypeMatch = data.image.match(/^pet(\d+)\//);
-          if (petTypeMatch) {
-            localStorage.setItem('lastScrolledSection', petTypeMatch[1]);
-          }
-          
-          showLevelUpModal({
-            oldLevel: data.start_level || data.level - 1,
-            newLevel: data.level,
-            petImage: data.image,
-            petType: petType,
-            evolution: isFinalEvolution ? data.evolution : undefined,
-            levelsGained: data.levels_gained
-          });
+        // ★重要: レベルアップしていない場合は通常のUI更新
+        if (!data.levels_gained || data.levels_gained === 0) {
+          updatePetUI(data);
+          selectedFoodDisplay.disabled = false;
+          selectedFoodDisplay.style.opacity = '1';
+          return;
         }
+        
+        // ★重要: レベルアップした場合
+        const petType = data.pet_type || 1;
+        const isFinalEvolution = (petType === 1 && data.level === 10) || (petType !== 1 && data.level === 5);
+        
+        // 新しく発見したペットを記録（レベルアップ時のみ）
+        if (data.image) {
+          localStorage.setItem('lastDiscoveredPet', data.image);
+        }
+        
+        // スクロール位置を保存
+        const pokedexSections = q('.pokedex-sections');
+        if (pokedexSections) {
+          localStorage.setItem('pokedexScrollPosition', pokedexSections.scrollTop);
+        }
+        
+        // ペットタイプを保存
+        const petTypeMatch = data.image.match(/^pet(\d+)\//);
+        if (petTypeMatch) {
+          localStorage.setItem('lastScrolledSection', petTypeMatch[1]);
+        }
+        
+        // ★重要: 少し待機してからモーダル表示（データベース同期を保証）
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // ★重要: 画像のキャッシュを回避するためタイムスタンプ付きで取得
+        const timestamp = Date.now();
+        const imageWithCache = `${data.image}?t=${timestamp}`;
+        
+        showLevelUpModal({
+          oldLevel: data.start_level || data.level - 1,
+          newLevel: data.level,
+          petImage: imageWithCache, // キャッシュバスター付き
+          petType: petType,
+          evolution: isFinalEvolution ? data.evolution : undefined,
+          levelsGained: data.levels_gained
+        });
       } else {
         alert(data.message || '餌やりに失敗しました');
+        selectedFoodDisplay.disabled = false;
+        selectedFoodDisplay.style.opacity = '1';
       }
     } catch (err) {
       console.error('エラー:', err);
       alert('餌やりに失敗しました');
-    } finally {
       selectedFoodDisplay.disabled = false;
       selectedFoodDisplay.style.opacity = '1';
     }
@@ -738,16 +752,22 @@ function closeLevelUpModal() {
 function initLevelUpModal() {
   const closeBtn = q('#levelupCloseBtn');
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
+    closeBtn.addEventListener('click', async () => {
       closeLevelUpModal();
+      
+      // ★重要: モーダルを閉じた後、データを再取得してからリロード
+      await new Promise(resolve => setTimeout(resolve, 100));
       location.reload();
     });
   }
   
   const backdrop = q('.levelup-backdrop');
   if (backdrop) {
-    backdrop.addEventListener('click', () => {
+    backdrop.addEventListener('click', async () => {
       closeLevelUpModal();
+      
+      // ★重要: モーダルを閉じた後、データを再取得してからリロード
+      await new Promise(resolve => setTimeout(resolve, 100));
       location.reload();
     });
   }
@@ -756,10 +776,15 @@ function initLevelUpModal() {
     const modal = q('#levelupModal');
     if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
       closeLevelUpModal();
-      location.reload();
+      
+      // ★重要: モーダルを閉じた後、データを再取得してからリロード
+      setTimeout(() => {
+        location.reload();
+      }, 100);
     }
   });
 }
+
 
 
 

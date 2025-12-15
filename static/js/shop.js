@@ -92,11 +92,9 @@ function updateUI(data) {
   }
   
   if (data.coins !== undefined) {
-    // ペットカード内のコイン表示を更新
     const coinCount = q('#coin-count');
     if (coinCount) coinCount.textContent = data.coins;
     
-    // ヘッダーのコイン表示も更新 (追加)
     const headerCoinCount = q('#header-coin-count');
     if (headerCoinCount) headerCoinCount.textContent = data.coins;
   }
@@ -109,7 +107,9 @@ function updateUI(data) {
   }
   
   if (data.image) {
-    q('#pet-img').src = `/static/images/${data.image}`;
+    // ★重要: 画像URLにタイムスタンプを追加してキャッシュを回避
+    const timestamp = Date.now();
+    q('#pet-img').src = `/static/images/${data.image}?t=${timestamp}`;
   }
   
   if (data.level !== undefined) {
@@ -120,7 +120,6 @@ function updateUI(data) {
     updateExpBar(data.exp, data.next_exp);
   }
   
-  // 購入ボタンの有効/無効を更新
   if (data.coins !== undefined) {
     qa('.buy-btn').forEach(btn => {
       const price = parseInt(btn.dataset.price);
@@ -247,16 +246,22 @@ function closeLevelUpModal() {
 function initLevelUpModal() {
   const closeBtn = q('#levelupCloseBtn');
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
+    closeBtn.addEventListener('click', async () => {
       closeLevelUpModal();
+      
+      // ★重要: モーダルを閉じた後、少し待機してからリロード
+      await new Promise(resolve => setTimeout(resolve, 100));
       location.reload();
     });
   }
   
   const backdrop = q('.levelup-backdrop');
   if (backdrop) {
-    backdrop.addEventListener('click', () => {
+    backdrop.addEventListener('click', async () => {
       closeLevelUpModal();
+      
+      // ★重要: モーダルを閉じた後、少し待機してからリロード
+      await new Promise(resolve => setTimeout(resolve, 100));
       location.reload();
     });
   }
@@ -265,7 +270,11 @@ function initLevelUpModal() {
     const modal = q('#levelupModal');
     if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
       closeLevelUpModal();
-      location.reload();
+      
+      // ★重要: モーダルを閉じた後、少し待機してからリロード
+      setTimeout(() => {
+        location.reload();
+      }, 100);
     }
   });
 }
@@ -306,12 +315,17 @@ function initBuyButtons() {
 // 餌やり処理
 // =============================================================================
 
+
 function initFeedButtons() {
   qa('.feed-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const foodName = btn.dataset.food;
       const levelLabel = q('#level-label');
       const currentLevel = levelLabel ? parseInt(levelLabel.textContent.replace('Lv.', '')) : 0;
+      
+      // ボタンを一時的に無効化
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
       
       try {
         const res = await fetch('/feed', {
@@ -323,26 +337,37 @@ function initFeedButtons() {
         const data = await res.json();
         
         if (data.levels_gained !== undefined && data.levels_gained > 0) {
-          // レベルアップした場合
+          // ★重要: レベルアップした場合
           if (data.image) {
             localStorage.setItem('lastDiscoveredPet', data.image);
           }
           
+          // ★重要: 少し待機してからモーダル表示（データベース同期を保証）
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // ★重要: 画像のキャッシュを回避するためタイムスタンプ付きで取得
+          const timestamp = Date.now();
+          const imageWithCache = `${data.image}?t=${timestamp}`;
+          
           showLevelUpModal({
             oldLevel: data.start_level,
             newLevel: data.level,
-            petImage: data.image,
+            petImage: imageWithCache, // キャッシュバスター付き
             petType: data.pet_type || 1,
             evolution: data.evolution || 1,
             levelsGained: data.levels_gained
           });
         } else {
-          // レベルアップしていない場合
+          // ★重要: レベルアップしていない場合
           updateUI(data);
+          btn.disabled = false;
+          btn.style.opacity = '1';
         }
       } catch (err) {
         console.error('エラー:', err);
         alert('餌やりに失敗しました');
+        btn.disabled = false;
+        btn.style.opacity = '1';
       }
     });
   });

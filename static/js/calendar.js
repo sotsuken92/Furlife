@@ -918,7 +918,9 @@ function updateExpBar(currentExp, requiredExp) {
 
 function updatePetUI(data) {
   if (data.image !== undefined) {
-    q("#pet-img").src = `/static/images/${data.image}`;
+    // ★重要: 画像URLにタイムスタンプを追加してキャッシュを回避
+    const timestamp = Date.now();
+    q("#pet-img").src = `/static/images/${data.image}?t=${timestamp}`;
     if (data.image.includes("death")) {
       q("#level-label").style.display = "none";
       const expBarContainer = q('.exp-bar-container');
@@ -1218,49 +1220,6 @@ function initPetButtons() {
       });
     });
   }
-
-  const feedBtn = q("#feed-btn");
-  if (feedBtn) {
-    feedBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      
-      const levelLabel = q('#level-label');
-      const currentLevel = levelLabel ? parseInt(levelLabel.textContent.replace('Lv.', '')) : 0;
-      
-      try {
-        const res = await fetch("/feed", { method: "POST" });
-        const data = await res.json();
-        
-        if (data.level !== undefined && data.level > currentLevel) {
-          if (data.image) {
-            localStorage.setItem('lastDiscoveredPet', data.image);
-          }
-          
-          showLevelUpModal({
-            oldLevel: data.start_level || currentLevel,
-            newLevel: data.level,
-            petImage: data.image,
-            petType: data.pet_type || 1,
-            evolution: data.evolution || 1,
-            levelsGained: data.levels_gained || 1
-          });
-        } else {
-          updatePetUI({
-            image: data.image,
-            level: data.level,
-            message: data.message,
-            food: data.food,
-            exp: data.exp,
-            next_exp: data.next_exp
-          });
-        } 
-      } catch (err) {
-        console.error('エラー:', err);
-        alert('餌やりに失敗しました');
-      }
-    });
-  }
-
   const reviveBtn = q("#revive");
   if (reviveBtn) {
     reviveBtn.addEventListener("click", async (e) => {
