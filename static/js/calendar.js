@@ -267,15 +267,20 @@ function updatePastEvents(nowTimeStr) {
   const today = new Date().toISOString().split('T')[0];
   const selectedDate = q("#selected-date-input")?.value || "";
   
-  // 今日の予定のみ更新
-  if (selectedDate !== today) return;
+  const nowDateTime = new Date(`${today}T${nowTimeStr}:00`);
+  const selectedDateTime = new Date(`${selectedDate}T23:59:59`);
   
   qa('.timeline-event').forEach(eventDiv => {
+    const eventDate = eventDiv.dataset.date;
     const endTime = eventDiv.dataset.endTime;
     const isDone = eventDiv.classList.contains('event-done') || eventDiv.classList.contains('event-failed');
     
-    // 終了時刻が過ぎていて、まだ完了/失敗の判定がされていない場合
-    if (endTime <= nowTimeStr && !isDone) {
+    // 🔧 修正: イベントの終了日時を計算
+    const eventEndDateTime = new Date(`${eventDate}T${endTime}:00`);
+    const isPast = eventEndDateTime < nowDateTime;
+    
+    // 🔧 修正: 過去の予定で未判定の場合
+    if (isPast && !isDone) {
       eventDiv.classList.add('event-past');
       
       // アクションボタンを更新
@@ -397,12 +402,20 @@ function displayEventsForDate(dateStr) {
     });
     
     const nowTime = q('.current-time-label')?.textContent || '00:00';
+    const nowDateTime = new Date(`${today}T${nowTime}:00`);
+    const selectedDateTime = new Date(`${dateStr}T23:59:59`);
+    
     sortedEvents.forEach(ev => {
       const isToday = dateStr === today;
       const startTime = ev.start_time || ev.time || '00:00';
       const endTime = ev.end_time || '23:59';
-      const isPast = isToday && endTime <= nowTime;
-      const canDelete = ev.done === null;
+      
+      // 🔧 修正: 選択した日付が今日より前、または今日で終了時刻が過ぎている場合
+      const eventEndDateTime = new Date(`${dateStr}T${endTime}:00`);
+      const isPast = eventEndDateTime < nowDateTime;
+      
+      // 🔧 修正: 削除可能条件 - 未来の予定で未判定、または既に判定済み
+      const canDelete = !isPast || ev.done !== null;
       
       const startMinutes = getMinutes(startTime);
       const endMinutes = getMinutes(endTime);
@@ -433,18 +446,21 @@ function displayEventsForDate(dateStr) {
       div.dataset.location = ev.location || 'その他';
       
       let buttonsHTML = '';
+      // 🔧 修正: 過去の予定で未判定の場合は常にボタン表示
       if (isPast && ev.done === null) {
         buttonsHTML = `
           <button class="btn btn-success btn-small done-btn" data-id="${ev.id}" data-date="${dateStr}" data-done="true">できた</button>
           <button class="btn btn-danger btn-small done-btn" data-id="${ev.id}" data-date="${dateStr}" data-done="false">できなかった</button>
-          <button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}" data-date="${dateStr}">削除</button>
         `;
       } else if (ev.done !== null) {
         buttonsHTML = ev.done 
           ? '<span class="badge badge-success">✓ できた</span>'
           : '<span class="badge badge-danger">✗ できなかった</span>';
-      } else {
-        buttonsHTML = `<button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}" data-date="${dateStr}">削除</button>`;
+      }
+      
+      // 🔧 修正: 削除ボタンは未来の予定または判定済みの予定に表示
+      if (canDelete) {
+        buttonsHTML += `<button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}" data-date="${dateStr}">削除</button>`;
       }
       
       div.innerHTML = `

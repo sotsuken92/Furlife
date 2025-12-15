@@ -190,8 +190,12 @@
                   {% for ev in today_events %}
                     {% set start_time = ev.get('start_time', ev.get('time', '00:00')) %}
                     {% set end_time = ev.get('end_time', '23:59') %}
+                    
+                    {# 🔧 修正: 当日かつ終了時刻が過ぎた予定 #}
                     {% set is_past = (end_time <= now_time) %}
-                    {% set can_delete = (end_time > now_time and ev.done is none) %}
+                    
+                    {# 🔧 修正: 削除可能条件 - 未来の予定で未判定のもの #}
+                    {% set can_delete = (not is_past and ev.done is none) %}
                     
                     {% set start_parts = start_time.split(':') %}
                     {% set end_parts = end_time.split(':') %}
@@ -221,10 +225,10 @@
                       <div class="timeline-event-location">📍 {{ ev.get('location', 'その他') }}</div>
                       <div class="timeline-event-text">{{ ev.event }}</div>
                       <div class="timeline-event-actions">
+                        {# 🔧 修正: 過去の予定で未判定のものは常にボタン表示 #}
                         {% if is_past and ev.done is none %}
                           <button class="btn btn-success btn-small done-btn" data-id="{{ ev.id }}" data-date="{{ today }}" data-done="true">できた</button>
                           <button class="btn btn-danger btn-small done-btn" data-id="{{ ev.id }}" data-date="{{ today }}" data-done="false">できなかった</button>
-                          <button class="btn btn-danger btn-small delete-btn" data-id="{{ ev.id }}" data-date="{{ today }}">削除</button>
                         {% elif ev.done is not none %}
                           {% if ev.done %}
                             <span class="badge badge-success">✓ できた</span>
@@ -232,7 +236,9 @@
                             <span class="badge badge-danger">✗ できなかった</span>
                           {% endif %}
                         {% endif %}
-                        {% if can_delete %}
+                        
+                        {# 🔧 修正: 未来の予定または判定済みの予定のみ削除可能 #}
+                        {% if can_delete or ev.done is not none %}
                           <button class="btn btn-danger btn-small delete-btn" data-id="{{ ev.id }}" data-date="{{ today }}">削除</button>
                         {% endif %}
                       </div>
