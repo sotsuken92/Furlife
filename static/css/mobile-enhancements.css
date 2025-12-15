@@ -1,4 +1,15 @@
 /* =============================================================================
+  モバイル強化CSS - ボトムナビゲーション + レスポンシブ改善
+  common.cssの後に読み込んでください
+   ============================================================================= */
+
+/* =============================================================================
+  ビューポート固定（拡大縮小防止）
+  HTMLのmetaタグに以下を追加してください：
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   ============================================================================= */
+
+/* =============================================================================
   ボトムナビゲーション（モバイル専用）
    ============================================================================= */
 
@@ -611,34 +622,56 @@
     gap: 12px;
   }
   
-  .form-input[type="time"] {
-    width: 100%;
-    font-size: 0.875rem;
-    padding: 10px 8px;
-  }
-  
-  /* 場所選択とイベント入力を統一 */
+  /* すべてのフォーム入力を統一 */
   .form-select,
-  .form-input[type="text"] {
+  .form-input {
+    width: 100% !important;
+    box-sizing: border-box;
     font-size: 0.875rem;
     padding: 10px 12px;
+  }
+  
+  .form-input[type="time"] {
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 0.875rem;
+    padding: 10px 8px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  
+  /* 時間入力グループ内の調整 */
+  .time-inputs-row .form-group {
+    margin-bottom: 0;
+  }
+  
+  .time-inputs-row .form-input {
+    width: 100%;
   }
   
   /* イベント入力ラッパーの調整 */
   .event-input-wrapper {
     display: flex;
     gap: 6px;
+    width: 100%;
   }
   
   .event-input-wrapper .form-input {
     flex: 1;
     min-width: 0;
+    width: auto;
   }
   
   .btn-random-event {
     flex-shrink: 0;
-    padding: 10px 12px;
-    font-size: 1rem;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   /* 設定メニューを非表示（ハンバーガーに移動） */
