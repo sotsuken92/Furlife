@@ -1,0 +1,661 @@
+/* =============================================================================
+  モバイル強化CSS - ボトムナビゲーション + レスポンシブ改善
+  common.cssの後に読み込んでください
+   ============================================================================= */
+
+/* =============================================================================
+  ボトムナビゲーション（モバイル専用）
+   ============================================================================= */
+
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 2px solid var(--border-color);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+}
+
+.bottom-nav-items {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-size: 0.688rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.bottom-nav-item.active {
+  color: var(--accent-primary);
+}
+
+.bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  background: var(--accent-primary);
+  border-radius: 0 0 3px 3px;
+}
+
+.bottom-nav-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.bottom-nav-label {
+  font-size: 0.688rem;
+}
+
+/* =============================================================================
+  ハンバーガーメニュー（モバイル専用）
+   ============================================================================= */
+
+.mobile-hamburger {
+  display: none;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1001;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hamburger-line {
+  width: 20px;
+  height: 2px;
+  background: white;
+  transition: all 0.3s;
+  border-radius: 2px;
+}
+
+.mobile-hamburger.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translateY(7px);
+}
+
+.mobile-hamburger.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-hamburger.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translateY(-7px);
+}
+
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.mobile-menu-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: -300px;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  background: var(--bg-secondary);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 80px 20px 20px;
+  overflow-y: auto;
+  transition: right 0.3s ease;
+}
+
+.mobile-menu.active {
+  display: block;
+  right: 0;
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.mobile-menu-user-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--accent-gradient);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.mobile-menu-user-info {
+  flex: 1;
+}
+
+.mobile-menu-username {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.mobile-menu-coins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.mobile-menu-coins img {
+  width: 20px;
+  height: 20px;
+}
+
+.mobile-menu-section {
+  margin-bottom: 24px;
+}
+
+.mobile-menu-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-left: 8px;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.938rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.mobile-menu-item:hover {
+  background: var(--hover-bg);
+}
+
+.mobile-menu-item-icon {
+  font-size: 1.25rem;
+  width: 24px;
+  text-align: center;
+}
+
+.mobile-logout-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.938rem;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+/* =============================================================================
+  スティッキーペットカード（モバイル専用）
+   ============================================================================= */
+
+.mobile-sticky-pet {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--accent-gradient);
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-pet-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.mobile-pet-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.mobile-pet-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-pet-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-pet-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.mobile-pet-level {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.mobile-pet-coins {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-pet-coins img {
+  width: 16px;
+  height: 16px;
+}
+
+.mobile-exp-bar-mini {
+  margin-top: 6px;
+}
+
+.mobile-exp-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mobile-exp-bar-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  transition: width 0.5s ease-out;
+  border-radius: 3px;
+}
+
+.mobile-pet-expand-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =============================================================================
+  モバイルペット詳細モーダル
+   ============================================================================= */
+
+.mobile-pet-modal {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1002;
+  max-height: 80vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+.mobile-pet-modal.active {
+  display: block;
+  transform: translateY(0);
+}
+
+.mobile-pet-modal-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  padding: 16px;
+  border-bottom: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.mobile-pet-modal-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mobile-pet-modal-close {
+  width: 32px;
+  height: 32px;
+  background: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-pet-modal-content {
+  padding: 20px;
+}
+
+/* =============================================================================
+  タッチ操作最適化
+   ============================================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+  /* タッチデバイス専用スタイル */
+  
+  .btn,
+  .pet-btn,
+  .buy-btn,
+  .feed-btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+  
+  .btn-small {
+    min-height: 40px;
+    padding: 10px 16px;
+  }
+  
+  .timeline-event {
+    cursor: default;
+    min-height: 60px;
+  }
+  
+  .calendar-cell {
+    min-height: 100px;
+  }
+  
+  /* タップ時のフィードバック */
+  .btn:active,
+  .pet-btn:active,
+  .buy-btn:active {
+    transform: scale(0.98);
+  }
+}
+
+/* =============================================================================
+  スワイプインジケーター
+   ============================================================================= */
+
+.swipe-indicator {
+  display: none;
+  width: 40px;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  margin: 8px auto;
+}
+
+/* =============================================================================
+  モバイル専用のレイアウト調整
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  /* ボトムナビゲーション表示 */
+  .bottom-nav {
+    display: block;
+  }
+  
+  /* ハンバーガーメニュー表示 */
+  .mobile-hamburger {
+    display: flex;
+  }
+  
+  /* スティッキーペットカード表示 */
+  .mobile-sticky-pet {
+    display: block;
+  }
+  
+  /* スワイプインジケーター表示（モーダル用） */
+  .mobile-pet-modal .swipe-indicator {
+    display: block;
+  }
+  
+  /* 既存ヘッダーを非表示 */
+  .header {
+    display: none;
+  }
+  
+  /* コンテナの調整 */
+  body {
+    padding: 0;
+    padding-bottom: max(70px, calc(70px + env(safe-area-inset-bottom)));
+  }
+  
+  .container {
+    padding: 0;
+  }
+  
+  /* カレンダータイトル調整 */
+  .calendar-title {
+    margin-top: 0;
+    padding: 20px 16px;
+    margin-bottom: 0;
+  }
+  
+  /* 目標カード調整 */
+  .goal-card {
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-bottom: 4px solid var(--accent-primary);
+  }
+  
+  /* メイングリッド調整 */
+  .main-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 0;
+  }
+  
+  /* カード調整 */
+  .card {
+    border-radius: 0;
+    border-left: none;
+    border-bottom: 4px solid var(--border-color);
+  }
+  
+  /* ペットカードを非表示（スティッキー版を使用） */
+  .main-grid > .pet-card {
+    display: none;
+  }
+  
+  /* カレンダーラッパー調整 */
+  .calendar-wrapper {
+    margin-bottom: 0;
+    border-radius: 0;
+    border-bottom: 4px solid var(--border-color);
+  }
+  
+  /* フォームカード調整 */
+  .form-card {
+    border-radius: 0;
+    border-left: none;
+    border-bottom: 4px solid var(--accent-primary);
+    margin-bottom: 0;
+  }
+  
+  /* タイムラインコンテナの高さ調整 */
+  .timeline-container {
+    height: 500px;
+  }
+  
+  /* タイムラインイベントのホバーアクション調整 */
+  .timeline-event-actions {
+    position: static;
+    transform: none;
+    margin-top: 8px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    display: flex !important;
+  }
+  
+  .timeline-event-actions .btn {
+    flex: 1;
+    min-width: 100px;
+  }
+  
+  /* 設定メニューを非表示（ハンバーガーに移動） */
+  .settings-wrapper {
+    display: none;
+  }
+}
+
+/* =============================================================================
+  タブレット（中間サイズ）対応
+   ============================================================================= */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* タブレット用の調整 */
+  .main-grid {
+    grid-template-columns: 400px 1fr;
+  }
+  
+  .timeline-container {
+    height: 550px;
+  }
+  
+  .pet-image {
+    max-width: 120px;
+  }
+}
+
+/* =============================================================================
+  横向き対応（スマホ横）
+   ============================================================================= */
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-sticky-pet {
+    position: relative;
+  }
+  
+  .timeline-container {
+    height: 400px;
+  }
+  
+  .mobile-pet-modal {
+    max-height: 90vh;
+  }
+}
+
+/* =============================================================================
+  ダークテーマ対応
+   ============================================================================= */
+
+[data-theme="dark"] .bottom-nav {
+  background: var(--bg-tertiary);
+  border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .mobile-menu {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .mobile-pet-modal {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .mobile-pet-modal-header {
+  background: var(--bg-tertiary);
+}
+
+/* =============================================================================
+  アクセシビリティ
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav-item,
+  .mobile-menu,
+  .mobile-pet-modal,
+  .hamburger-line {
+    transition: none;
+  }
+}
+
+/* フォーカス表示 */
+.bottom-nav-item:focus,
+.mobile-hamburger:focus,
+.mobile-menu-item:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
