@@ -259,6 +259,83 @@ function initPetName() {
   });
 }
 
+
+// =============================================================================
+// 現在時刻の自動更新
+// =============================================================================
+
+function updateCurrentTimeLine() {
+  const now = new Date();
+  const nowTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+  // 現在時刻ラベルを更新
+  const currentTimeLabel = q('.current-time-label');
+  if (currentTimeLabel) {
+    currentTimeLabel.textContent = nowTimeStr;
+  }
+  
+  // 現在時刻ラインの位置を更新
+  const currentTimeLine = q('.current-time-line');
+  if (currentTimeLine) {
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const nowPosition = (nowMinutes / 1440.0 * 100);
+    currentTimeLine.style.top = `${nowPosition}%`;
+  }
+  
+  // 過去の予定の状態を更新
+  updatePastEvents(nowTimeStr);
+}
+
+function updatePastEvents(nowTimeStr) {
+  const today = new Date().toISOString().split('T')[0];
+  const selectedDate = q("#selected-date-input")?.value || "";
+  
+  const nowDateTime = new Date(`${today}T${nowTimeStr}:00`);
+  const selectedDateTime = new Date(`${selectedDate}T23:59:59`);
+  
+  qa('.timeline-event').forEach(eventDiv => {
+    const eventDate = eventDiv.dataset.date;
+    const endTime = eventDiv.dataset.endTime;
+    const isDone = eventDiv.classList.contains('event-done') || eventDiv.classList.contains('event-failed');
+    
+    // 🔧 修正: イベントの終了日時を計算
+    const eventEndDateTime = new Date(`${eventDate}T${endTime}:00`);
+    const isPast = eventEndDateTime < nowDateTime;
+    
+    // 🔧 修正: 過去の予定で未判定の場合
+    if (isPast && !isDone) {
+      eventDiv.classList.add('event-past');
+      
+      // アクションボタンを更新
+      const actionsDiv = eventDiv.querySelector('.timeline-event-actions');
+      if (actionsDiv && !actionsDiv.querySelector('.done-btn')) {
+        const eventId = eventDiv.dataset.id;
+        const dateStr = eventDiv.dataset.date;
+        
+        actionsDiv.innerHTML = `
+          <button class="btn btn-success btn-small done-btn" data-id="${eventId}" data-date="${dateStr}" data-done="true">できた</button>
+          <button class="btn btn-danger btn-small done-btn" data-id="${eventId}" data-date="${dateStr}" data-done="false">できなかった</button>
+          <button class="btn btn-danger btn-small delete-btn" data-id="${eventId}" data-date="${dateStr}">削除</button>
+        `;
+      }
+    }
+  });
+}
+
+function startCurrentTimeUpdate() {
+  // 初回実行
+  updateCurrentTimeLine();
+  
+  // 1分ごとに更新
+  setInterval(updateCurrentTimeLine, 60000);
+  
+  // 秒単位での滑らかな更新が必要な場合は以下を使用
+  // setInterval(updateCurrentTimeLine, 1000);
+}
+
+
+
+
 // =============================================================================
 // タイムライン表示
 // =============================================================================
@@ -348,12 +425,20 @@ function displayEventsForDate(dateStr) {
     });
     
     const nowTime = q('.current-time-label')?.textContent || '00:00';
+    const nowDateTime = new Date(`${today}T${nowTime}:00`);
+    const selectedDateTime = new Date(`${dateStr}T23:59:59`);
+    
     sortedEvents.forEach(ev => {
       const isToday = dateStr === today;
       const startTime = ev.start_time || ev.time || '00:00';
       const endTime = ev.end_time || '23:59';
-      const isPast = isToday && endTime <= nowTime;
-      const canDelete = ev.done === null;
+      
+      // 🔧 修正: 選択した日付が今日より前、または今日で終了時刻が過ぎている場合
+      const eventEndDateTime = new Date(`${dateStr}T${endTime}:00`);
+      const isPast = eventEndDateTime < nowDateTime;
+      
+      // 🔧 修正: 削除可能条件 - 未来の予定で未判定、または既に判定済み
+      const canDelete = !isPast || ev.done !== null;
       
       const startMinutes = getMinutes(startTime);
       const endMinutes = getMinutes(endTime);
@@ -384,23 +469,26 @@ function displayEventsForDate(dateStr) {
       div.dataset.location = ev.location || 'その他';
       
       let buttonsHTML = '';
+      // 🔧 修正: 過去の予定で未判定の場合は常にボタン表示
       if (isPast && ev.done === null) {
         buttonsHTML = `
           <button class="btn btn-success btn-small done-btn" data-id="${ev.id}" data-date="${dateStr}" data-done="true">できた</button>
           <button class="btn btn-danger btn-small done-btn" data-id="${ev.id}" data-date="${dateStr}" data-done="false">できなかった</button>
-          <button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}" data-date="${dateStr}">削除</button>
         `;
       } else if (ev.done !== null) {
         buttonsHTML = ev.done 
-          ? '<span class="badge badge-success">$2713 できた</span>'
-          : '<span class="badge badge-danger">$2717 できなかった</span>';
-      } else {
-        buttonsHTML = `<button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}" data-date="${dateStr}">削除</button>`;
+          ? '<span class="badge badge-success">✓ できた</span>'
+          : '<span class="badge badge-danger">✗ できなかった</span>';
+      }
+      
+      // 🔧 修正: 削除ボタンは未来の予定または判定済みの予定に表示
+      if (canDelete) {
+        buttonsHTML += `<button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}" data-date="${dateStr}">削除</button>`;
       }
       
       div.innerHTML = `
         <div class="timeline-event-time">${startTime} - ${endTime}</div>
-        <div class="timeline-event-location">$D83D$DCCD ${ev.location || 'その他'}</div>
+        <div class="timeline-event-location">📍 ${ev.location || 'その他'}</div>
         <div class="timeline-event-text">${ev.event}</div>
         <div class="timeline-event-actions">
           ${buttonsHTML}
@@ -1439,6 +1527,7 @@ function init() {
   initShopButton();
   
   applyColorsToExistingEvents();
+  startCurrentTimeUpdate();
   
   const initialDate = q("#selected-date-input")?.value || "";
   if (initialDate) displayEventsForDate(initialDate);
