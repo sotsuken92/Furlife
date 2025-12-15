@@ -10,23 +10,46 @@ const qa = (sel) => document.querySelectorAll(sel);
 // =============================================================================
 
 function initTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'blue';
+  // デフォルトテーマの設定（既存テーマからの移行対応）
+  let savedTheme = localStorage.getItem('theme') || 'blue-light';
+  
+  // 既存テーマ名からの変換
+  const themeMapping = {
+    'blue': 'blue-light',
+    'green': 'green-light',
+    'dark': 'purple-dark'
+  };
+  
+  if (themeMapping[savedTheme]) {
+    savedTheme = themeMapping[savedTheme];
+    localStorage.setItem('theme', savedTheme);
+  }
+  
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  qa('.theme-option').forEach(option => {
-    if (option.dataset.theme === savedTheme) {
-      option.classList.add('active');
+  // すべてのテーマボックスにイベントリスナーを追加
+  qa('.theme-color-box').forEach(box => {
+    const theme = box.dataset.theme;
+    
+    // 現在のテーマに active クラスを追加
+    if (theme === savedTheme) {
+      box.classList.add('active');
     }
     
-    option.addEventListener('click', (e) => {
+    // クリックイベント
+    box.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const theme = option.dataset.theme;
+      
+      // テーマを適用
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
       
-      qa('.theme-option').forEach(opt => opt.classList.remove('active'));
-      option.classList.add('active');
+      // すべてのボックスから active を削除
+      qa('.theme-color-box').forEach(b => b.classList.remove('active'));
+      
+      // クリックされたボックスに active を追加
+      box.classList.add('active');
     });
   });
 }
