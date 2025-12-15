@@ -361,8 +361,36 @@
   }
   
   // =============================================================================
-  // 初期化
+  // フォーム入力の最適化
   // =============================================================================
+  
+  function optimizeFormInputs() {
+    if (!isMobile()) return;
+    
+    // 時間入力フィールドを横並びにする
+    const startTimeGroup = document.querySelector('label[for="startTimeInput"]')?.parentElement;
+    const endTimeGroup = document.querySelector('label[for="endTimeInput"]')?.parentElement;
+    
+    if (startTimeGroup && endTimeGroup) {
+      // 既に処理済みかチェック
+      if (startTimeGroup.parentElement?.classList.contains('time-inputs-row')) return;
+      
+      // ラッパーを作成
+      const wrapper = createElement('div', 'time-inputs-row');
+      
+      // 開始時間グループをラッパーに移動
+      const parent = startTimeGroup.parentElement;
+      parent.insertBefore(wrapper, startTimeGroup);
+      wrapper.appendChild(startTimeGroup);
+      wrapper.appendChild(endTimeGroup);
+      
+      // ラベルを短縮
+      const startLabel = startTimeGroup.querySelector('label');
+      const endLabel = endTimeGroup.querySelector('label');
+      if (startLabel) startLabel.textContent = '開始';
+      if (endLabel) endLabel.textContent = '終了';
+    }
+  }
   
   function initMobileUI() {
     if (!isMobile()) return;
@@ -370,6 +398,18 @@
     createBottomNav();
     createHamburgerMenu();
     createStickyPetCard();
+    optimizeFormInputs();
+    
+    // フォームが表示されたときにも最適化を実行
+    const formCard = document.querySelector('.form-card');
+    if (formCard) {
+      const observer = new MutationObserver(() => {
+        if (!formCard.classList.contains('hidden')) {
+          optimizeFormInputs();
+        }
+      });
+      observer.observe(formCard, { attributes: true, attributeFilter: ['class'] });
+    }
     
     // リサイズ時の再初期化
     let resizeTimer;

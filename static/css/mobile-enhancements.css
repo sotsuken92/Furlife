@@ -1,9 +1,4 @@
 /* =============================================================================
-  モバイル強化CSS - ボトムナビゲーション + レスポンシブ改善
-  common.cssの後に読み込んでください
-   ============================================================================= */
-
-/* =============================================================================
   ボトムナビゲーション（モバイル専用）
    ============================================================================= */
 
@@ -554,6 +549,27 @@
   /* タイムラインコンテナの高さ調整 */
   .timeline-container {
     height: 500px;
+    overflow-x: hidden; /* 横スクロールを防止 */
+  }
+  
+  /* タイムライングリッドの調整 */
+  .timeline-grid {
+    min-width: 100%;
+    width: 100%;
+  }
+  
+  /* タイムラインイベントの幅調整 */
+  .timeline-event {
+    width: calc(100% - 70px) !important;
+    min-width: auto !important;
+    max-width: calc(100% - 70px) !important;
+    left: 68px !important;
+  }
+  
+  /* 時間軸の幅調整 */
+  .timeline-hours {
+    width: 60px;
+    flex-shrink: 0;
   }
   
   /* タイムラインイベントのホバーアクション調整 */
@@ -568,11 +584,61 @@
     flex-direction: row;
     flex-wrap: wrap;
     display: flex !important;
+    gap: 4px;
   }
   
   .timeline-event-actions .btn {
     flex: 1;
-    min-width: 100px;
+    min-width: 80px;
+    font-size: 0.75rem;
+    padding: 6px 8px;
+  }
+  
+  .timeline-event-actions .badge {
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* フォーム入力の調整 */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  /* 時間入力フィールドの横並び */
+  .time-inputs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .form-input[type="time"] {
+    width: 100%;
+    font-size: 0.875rem;
+    padding: 10px 8px;
+  }
+  
+  /* 場所選択とイベント入力を統一 */
+  .form-select,
+  .form-input[type="text"] {
+    font-size: 0.875rem;
+    padding: 10px 12px;
+  }
+  
+  /* イベント入力ラッパーの調整 */
+  .event-input-wrapper {
+    display: flex;
+    gap: 6px;
+  }
+  
+  .event-input-wrapper .form-input {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .btn-random-event {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    font-size: 1rem;
   }
   
   /* 設定メニューを非表示（ハンバーガーに移動） */
