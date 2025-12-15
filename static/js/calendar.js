@@ -1132,7 +1132,11 @@ function showCoinModal({ coinAmount, totalCoins, message }) {
   for (let i = 0; i < 30; i++) {
     const confetti = document.createElement('div');
     confetti.className = 'coin-confetti';
-    confetti.textContent = '<img src="/static/images/coin/coin.jpg">';
+    const img = document.createElement("img");
+    img.src = "/static/images/coin/coin.jpg";
+    img.alt = "coin";
+    confetti.innerHTML = ""; // 中身をクリアしたい場合
+    confetti.appendChild(img);
     confetti.style.left = `${Math.random() * 100}%`;
     confetti.style.animationDelay = `${Math.random() * 3}s`;
     confetti.style.animationDuration = `${3 + Math.random() * 2}s`;
