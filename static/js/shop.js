@@ -10,10 +10,8 @@ const qa = (sel) => document.querySelectorAll(sel);
 // =============================================================================
 
 function initTheme() {
-  // デフォルトテーマの設定（既存テーマからの移行対応）
   let savedTheme = localStorage.getItem('theme') || 'blue-light';
   
-  // 既存テーマ名からの変換
   const themeMapping = {
     'blue': 'blue-light',
     'green': 'green-light',
@@ -27,28 +25,21 @@ function initTheme() {
   
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  // すべてのテーマボックスにイベントリスナーを追加
   qa('.theme-color-box').forEach(box => {
     const theme = box.dataset.theme;
     
-    // 現在のテーマに active クラスを追加
     if (theme === savedTheme) {
       box.classList.add('active');
     }
     
-    // クリックイベント
     box.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       
-      // テーマを適用
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
       
-      // すべてのボックスから active を削除
       qa('.theme-color-box').forEach(b => b.classList.remove('active'));
-      
-      // クリックされたボックスに active を追加
       box.classList.add('active');
     });
   });
@@ -107,9 +98,7 @@ function updateUI(data) {
   }
   
   if (data.image) {
-    // ★重要: 画像URLにタイムスタンプを追加してキャッシュを回避
-    const timestamp = Date.now();
-    q('#pet-img').src = `/static/images/${data.image}?t=${timestamp}`;
+    q('#pet-img').src = `/static/images/${data.image}`;
   }
   
   if (data.level !== undefined) {
@@ -120,12 +109,198 @@ function updateUI(data) {
     updateExpBar(data.exp, data.next_exp);
   }
   
+  // 購入ボタンの有効/無効を更新
   if (data.coins !== undefined) {
-    qa('.buy-btn').forEach(btn => {
-      const price = parseInt(btn.dataset.price);
-      btn.disabled = data.coins < price;
-    });
+    updateAllBuyButtons(data.coins);
   }
+}
+
+// =============================================================================
+// 個数選択の初期化
+// =============================================================================
+
+function initQuantitySelectors() {
+  // プラスボタン
+  qa('.quantity-plus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const foodName = btn.dataset.food;
+      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+      const currentValue = parseInt(input.value) || 1;
+      const newValue = Math.min(currentValue + 1, 999);
+      input.value = newValue;
+      updateTotalPrice(foodName);
+    });
+  });
+  
+  // マイナスボタン
+  qa('.quantity-minus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const foodName = btn.dataset.food;
+      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+      const currentValue = parseInt(input.value) || 1;
+      const newValue = Math.max(currentValue - 1, 1);
+      input.value = newValue;
+      updateTotalPrice(foodName);
+    });
+  });
+  
+  // 入力フィールド
+  qa('.quantity-input').forEach(input => {
+    input.addEventListener('input', () => {
+      let value = parseInt(input.value) || 1;
+      value = Math.max(1, Math.min(value, 999));
+      input.value = value;
+      updateTotalPrice(input.dataset.food);
+    });
+    
+    input.addEventListener('blur', () => {
+      if (!input.value || parseInt(input.value) < 1) {
+        input.value = 1;
+        updateTotalPrice(input.dataset.food);
+      }
+    });
+  });
+}
+
+// 合計金額の更新
+function updateTotalPrice(foodName) {
+  const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+  const buyBtn = document.querySelector(`.buy-btn[data-food="${foodName}"]`);
+  const totalPriceEl = document.querySelector(`.total-price[data-food="${foodName}"] .total-amount`);
+  
+  const quantity = parseInt(input.value) || 1;
+  const unitPrice = parseInt(buyBtn.dataset.price);
+  const totalPrice = quantity * unitPrice;
+  
+  totalPriceEl.textContent = totalPrice;
+  
+  // コイン残高チェック
+  const coinCount = parseInt(q('#coin-count').textContent) || 0;
+  buyBtn.disabled = coinCount < totalPrice;
+}
+
+// 全ての購入ボタンの状態を更新
+function updateAllBuyButtons(currentCoins) {
+  qa('.buy-btn').forEach(btn => {
+    const foodName = btn.dataset.food;
+    const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+    const quantity = parseInt(input.value) || 1;
+    const unitPrice = parseInt(btn.dataset.price);
+    const totalPrice = quantity * unitPrice;
+    
+    btn.disabled = currentCoins < totalPrice;
+  });
+}
+
+// =============================================================================
+// 購入処理
+// =============================================================================
+
+function initBuyButtons() {
+  qa('.buy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const foodName = btn.dataset.food;
+      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+      const quantity = parseInt(input.value) || 1;
+      const unitPrice = parseInt(btn.dataset.price);
+      const totalPrice = quantity * unitPrice;
+      
+      // コイン残高チェック
+      const currentCoins = parseInt(q('#coin-count').textContent) || 0;
+      if (currentCoins < totalPrice) {
+        alert('コインが足りません');
+        return;
+      }
+      
+      try {
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = '購入中...';
+        
+        console.log('購入リクエスト:', { food_name: foodName, quantity: quantity }); // デバッグ用
+        
+        const res = await fetch('/buy_food', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            food_name: foodName,
+            quantity: quantity
+          })
+        });
+        
+        const data = await res.json();
+        console.log('購入レスポンス:', data); // デバッグ用
+        
+        if (res.ok && data.success) {
+          updateUI(data);
+          
+          // 購入後は個数を1にリセット
+          input.value = 1;
+          updateTotalPrice(foodName);
+          
+          // 成功メッセージ
+          btn.textContent = '購入完了！';
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }, 1000);
+        } else {
+          alert(data.error || '購入に失敗しました');
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        console.error('エラー:', err);
+        alert('通信エラーが発生しました');
+        btn.textContent = '購入';
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+// =============================================================================
+// 餌やり処理
+// =============================================================================
+
+function initFeedButtons() {
+  qa('.feed-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const foodName = btn.dataset.food;
+      const levelLabel = q('#level-label');
+      const currentLevel = levelLabel ? parseInt(levelLabel.textContent.replace('Lv.', '')) : 0;
+      
+      try {
+        const res = await fetch('/feed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ food_name: foodName })
+        });
+        
+        const data = await res.json();
+        
+        if (data.levels_gained !== undefined && data.levels_gained > 0) {
+          if (data.image) {
+            localStorage.setItem('lastDiscoveredPet', data.image);
+          }
+          
+          showLevelUpModal({
+            oldLevel: data.start_level,
+            newLevel: data.level,
+            petImage: data.image,
+            petType: data.pet_type || 1,
+            evolution: data.evolution || 1,
+            levelsGained: data.levels_gained
+          });
+        } else {
+          updateUI(data);
+        }
+      } catch (err) {
+        console.error('エラー:', err);
+        alert('餌やりに失敗しました');
+      }
+    });
+  });
 }
 
 // =============================================================================
@@ -246,22 +421,16 @@ function closeLevelUpModal() {
 function initLevelUpModal() {
   const closeBtn = q('#levelupCloseBtn');
   if (closeBtn) {
-    closeBtn.addEventListener('click', async () => {
+    closeBtn.addEventListener('click', () => {
       closeLevelUpModal();
-      
-      // ★重要: モーダルを閉じた後、少し待機してからリロード
-      await new Promise(resolve => setTimeout(resolve, 100));
       location.reload();
     });
   }
   
   const backdrop = q('.levelup-backdrop');
   if (backdrop) {
-    backdrop.addEventListener('click', async () => {
+    backdrop.addEventListener('click', () => {
       closeLevelUpModal();
-      
-      // ★重要: モーダルを閉じた後、少し待機してからリロード
-      await new Promise(resolve => setTimeout(resolve, 100));
       location.reload();
     });
   }
@@ -270,227 +439,8 @@ function initLevelUpModal() {
     const modal = q('#levelupModal');
     if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
       closeLevelUpModal();
-      
-      // ★重要: モーダルを閉じた後、少し待機してからリロード
-      setTimeout(() => {
-        location.reload();
-      }, 100);
+      location.reload();
     }
-  });
-}
-
-// 個数選択の初期化
-function initQuantitySelectors() {
-  // プラスボタン
-  qa('.quantity-plus').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const foodName = btn.dataset.food;
-      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
-      const currentValue = parseInt(input.value) || 1;
-      const newValue = Math.min(currentValue + 1, 999);
-      input.value = newValue;
-      updateTotalPrice(foodName);
-    });
-  });
-  
-  // マイナスボタン
-  qa('.quantity-minus').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const foodName = btn.dataset.food;
-      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
-      const currentValue = parseInt(input.value) || 1;
-      const newValue = Math.max(currentValue - 1, 1);
-      input.value = newValue;
-      updateTotalPrice(foodName);
-    });
-  });
-  
-  // 入力フィールド
-  qa('.quantity-input').forEach(input => {
-    input.addEventListener('input', () => {
-      let value = parseInt(input.value) || 1;
-      value = Math.max(1, Math.min(value, 999));
-      input.value = value;
-      updateTotalPrice(input.dataset.food);
-    });
-    
-    input.addEventListener('blur', () => {
-      if (!input.value || parseInt(input.value) < 1) {
-        input.value = 1;
-        updateTotalPrice(input.dataset.food);
-      }
-    });
-  });
-}
-
-// 合計金額の更新
-function updateTotalPrice(foodName) {
-  const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
-  const buyBtn = document.querySelector(`.buy-btn[data-food="${foodName}"]`);
-  const totalPriceEl = document.querySelector(`.total-price[data-food="${foodName}"] .total-amount`);
-  
-  const quantity = parseInt(input.value) || 1;
-  const unitPrice = parseInt(buyBtn.dataset.price);
-  const totalPrice = quantity * unitPrice;
-  
-  totalPriceEl.textContent = totalPrice;
-  
-  // コイン残高チェック
-  const coinCount = parseInt(q('#coin-count').textContent) || 0;
-  buyBtn.disabled = coinCount < totalPrice;
-}
-
-// 購入処理の修正（既存のinitBuyButtons関数を置き換え）
-function initBuyButtons() {
-  qa('.buy-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const foodName = btn.dataset.food;
-      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
-      const quantity = parseInt(input.value) || 1;
-      const unitPrice = parseInt(btn.dataset.price);
-      const totalPrice = quantity * unitPrice;
-      
-      // コイン残高チェック
-      const currentCoins = parseInt(q('#coin-count').textContent) || 0;
-      if (currentCoins < totalPrice) {
-        alert('コインが足りません');
-        return;
-      }
-      
-      try {
-        btn.disabled = true;
-        btn.textContent = '購入中...';
-        
-        const res = await fetch('/buy_food', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            food_name: foodName,
-            quantity: quantity  // 個数を追加
-          })
-        });
-        
-        const data = await res.json();
-        
-        if (res.ok && data.success) {
-          updateUI(data);
-          
-          // 購入後は個数を1にリセット
-          input.value = 1;
-          updateTotalPrice(foodName);
-          
-          // 成功メッセージ
-          btn.textContent = '購入完了！';
-          setTimeout(() => {
-            btn.textContent = '購入';
-            btn.disabled = false;
-          }, 1000);
-        } else {
-          alert(data.error || '購入に失敗しました');
-          btn.textContent = '購入';
-          btn.disabled = false;
-        }
-      } catch (err) {
-        console.error('エラー:', err);
-        alert('通信エラーが発生しました');
-        btn.textContent = '購入';
-        btn.disabled = false;
-      }
-    });
-  });
-}
-
-// =============================================================================
-// 購入処理
-// =============================================================================
-
-function initBuyButtons() {
-  qa('.buy-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const foodName = btn.dataset.food;
-      const price = parseInt(btn.dataset.price);
-      
-      try {
-        const res = await fetch('/buy_food', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ food_name: foodName })
-        });
-        
-        const data = await res.json();
-        
-        if (res.ok && data.success) {
-          updateUI(data);
-        } else {
-          alert(data.error || '購入に失敗しました');
-        }
-      } catch (err) {
-        console.error('エラー:', err);
-        alert('通信エラーが発生しました');
-      }
-    });
-  });
-}
-
-// =============================================================================
-// 餌やり処理
-// =============================================================================
-
-
-function initFeedButtons() {
-  qa('.feed-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const foodName = btn.dataset.food;
-      const levelLabel = q('#level-label');
-      const currentLevel = levelLabel ? parseInt(levelLabel.textContent.replace('Lv.', '')) : 0;
-      
-      // ボタンを一時的に無効化
-      btn.disabled = true;
-      btn.style.opacity = '0.6';
-      
-      try {
-        const res = await fetch('/feed', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ food_name: foodName })
-        });
-        
-        const data = await res.json();
-        
-        if (data.levels_gained !== undefined && data.levels_gained > 0) {
-          // ★重要: レベルアップした場合
-          if (data.image) {
-            localStorage.setItem('lastDiscoveredPet', data.image);
-          }
-          
-          // ★重要: 少し待機してからモーダル表示（データベース同期を保証）
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          // ★重要: 画像のキャッシュを回避するためタイムスタンプ付きで取得
-          const timestamp = Date.now();
-          const imageWithCache = `${data.image}?t=${timestamp}`;
-          
-          showLevelUpModal({
-            oldLevel: data.start_level,
-            newLevel: data.level,
-            petImage: imageWithCache, // キャッシュバスター付き
-            petType: data.pet_type || 1,
-            evolution: data.evolution || 1,
-            levelsGained: data.levels_gained
-          });
-        } else {
-          // ★重要: レベルアップしていない場合
-          updateUI(data);
-          btn.disabled = false;
-          btn.style.opacity = '1';
-        }
-      } catch (err) {
-        console.error('エラー:', err);
-        alert('餌やりに失敗しました');
-        btn.disabled = false;
-        btn.style.opacity = '1';
-      }
-    });
   });
 }
 
@@ -501,10 +451,10 @@ function initFeedButtons() {
 function init() {
   initTheme();
   initPetName();
+  initQuantitySelectors(); // 個数選択を初期化
   initBuyButtons();
   initFeedButtons();
   initLevelUpModal();
-  initQuantitySelectors();
 }
 
 init();
