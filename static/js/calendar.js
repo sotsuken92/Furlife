@@ -1135,7 +1135,7 @@ function showCoinModal({ coinAmount, totalCoins, message }) {
     const confetti = document.createElement('div');
     confetti.className = 'coin-confetti';
     const img = document.createElement("img");
-    img.src = "/static/images/coin/coin.jpg";
+    img.src = "💰";
     img.alt = "coin";
     confetti.innerHTML = ""; // 中身をクリアしたい場合
     confetti.appendChild(img);
