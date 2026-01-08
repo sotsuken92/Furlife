@@ -229,18 +229,18 @@ def increment_育成_count(image_name):
     # ★デバッグ用ログ追加
     print(f"[DEBUG] Incrementing 育成_count for {username}: {image_name}")
     
-    # ★重要: MongoDBの$incオペレーターを使って原子的に更新
-    result = pokedex_collection.update_one(
-        {"username": username},
-        {
-            "$inc": {f"育成_counts.{image_name}": 1},
-            "$setOnInsert": {"discovered": []}  # 新規作成時のみdiscoveredを初期化
-        },
-        upsert=True
-    )
+    # ★重要: まず現在のデータを取得
+    user_pokedex = get_user_pokedex()
+    
+    # 育成回数をインクリメント
+    current_count = user_pokedex["育成_counts"].get(image_name, 0)
+    user_pokedex["育成_counts"][image_name] = current_count + 1
+    
+    # ★重要: データベースに保存
+    save_user_pokedex(user_pokedex)
     
     # ★デバッグ用ログ追加
-    print(f"[DEBUG] Update result - matched: {result.matched_count}, modified: {result.modified_count}, upserted: {result.upserted_id}")
+    print(f"[DEBUG] Updated 育成_count for {image_name}: {current_count} -> {current_count + 1}")
 
 # =============================================================================
 # ユーティリティ関数
