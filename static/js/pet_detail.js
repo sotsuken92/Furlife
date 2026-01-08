@@ -785,6 +785,74 @@ function initLevelUpModal() {
   });
 }
 
+function initPokedexImageControl() {
+  // 図鑑の画像を静止画に変換
+  const pokedexImages = qa('.pokedex-item.discovered .pokedex-img');
+  
+  pokedexImages.forEach(img => {
+    // 元のGIFのURLを保存
+    const originalSrc = img.src;
+    img.dataset.gifSrc = originalSrc;
+    
+    // 画像読み込み完了後、Canvasで静止画に変換
+    if (img.complete) {
+      convertToStatic(img);
+    } else {
+      img.addEventListener('load', () => convertToStatic(img));
+    }
+  });
+}
+
+function convertToStatic(img) {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  
+  // Canvasの内容を静止画として設定
+  img.src = canvas.toDataURL('image/png');
+}
+
+// openPetDetailModal関数を修正（既存の関数を置き換え）
+function openPetDetailModal(petData) {
+  const modalImage = q('#modalPetImage');
+  const modalName = q('#modalPetName');
+  const modalType = q('#modalPetType');
+  const modalDescription = q('#modalPetDescription');
+  const modal育成Count = q('#modalPet育成Count');
+  const modalNumber = q('#modalPetNumber');
+  const modalRarity = q('#modalPetRarity');
+  
+  // ★ 元のGIFアニメーションを読み込む（新しく読み込むことでアニメーション再生）
+  const timestamp = Date.now(); // キャッシュ回避
+  modalImage.src = `/static/images/${petData.image}?t=${timestamp}`;
+  
+  modalName.textContent = petData.name;
+  modalType.textContent = PET_TYPE_NAMES[petData.petType] || '';
+  modalDescription.textContent = PET_DESCRIPTIONS[petData.image] || 'このペットの詳細情報はまだありません。';
+  modal育成Count.textContent = `育成回数: ${petData.育成Count}回`;
+  modalNumber.textContent = `図鑑 No.${petData.number}`;
+  
+  // レアリティ星を表示
+  if (petData.rarity && petData.rarity > 0) {
+    modalRarity.innerHTML = '';
+    modalRarity.setAttribute('data-rarity', petData.rarity);
+    for (let i = 0; i < petData.rarity; i++) {
+      const star = document.createElement('span');
+      star.className = 'rarity-star';
+      star.textContent = '★';
+      modalRarity.appendChild(star);
+    }
+    modalRarity.style.display = 'flex';
+  } else {
+    modalRarity.style.display = 'none';
+  }
+  
+  petDetailModal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
 
 
 
@@ -822,6 +890,8 @@ function init() {
   
   // 新規発見ペットへスクロール
   scrollToNewDiscovery();
+
+  initPokedexImageControl();
 }
 
 // ページ読み込み時に初期化実行
