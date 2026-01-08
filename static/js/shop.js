@@ -279,6 +279,127 @@ function initLevelUpModal() {
   });
 }
 
+// 個数選択の初期化
+function initQuantitySelectors() {
+  // プラスボタン
+  qa('.quantity-plus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const foodName = btn.dataset.food;
+      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+      const currentValue = parseInt(input.value) || 1;
+      const newValue = Math.min(currentValue + 1, 999);
+      input.value = newValue;
+      updateTotalPrice(foodName);
+    });
+  });
+  
+  // マイナスボタン
+  qa('.quantity-minus').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const foodName = btn.dataset.food;
+      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+      const currentValue = parseInt(input.value) || 1;
+      const newValue = Math.max(currentValue - 1, 1);
+      input.value = newValue;
+      updateTotalPrice(foodName);
+    });
+  });
+  
+  // 入力フィールド
+  qa('.quantity-input').forEach(input => {
+    input.addEventListener('input', () => {
+      let value = parseInt(input.value) || 1;
+      value = Math.max(1, Math.min(value, 999));
+      input.value = value;
+      updateTotalPrice(input.dataset.food);
+    });
+    
+    input.addEventListener('blur', () => {
+      if (!input.value || parseInt(input.value) < 1) {
+        input.value = 1;
+        updateTotalPrice(input.dataset.food);
+      }
+    });
+  });
+}
+
+// 合計金額の更新
+function updateTotalPrice(foodName) {
+  const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+  const buyBtn = document.querySelector(`.buy-btn[data-food="${foodName}"]`);
+  const totalPriceEl = document.querySelector(`.total-price[data-food="${foodName}"] .total-amount`);
+  
+  const quantity = parseInt(input.value) || 1;
+  const unitPrice = parseInt(buyBtn.dataset.price);
+  const totalPrice = quantity * unitPrice;
+  
+  totalPriceEl.textContent = totalPrice;
+  
+  // コイン残高チェック
+  const coinCount = parseInt(q('#coin-count').textContent) || 0;
+  buyBtn.disabled = coinCount < totalPrice;
+}
+
+// 購入処理の修正（既存のinitBuyButtons関数を置き換え）
+function initBuyButtons() {
+  qa('.buy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const foodName = btn.dataset.food;
+      const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
+      const quantity = parseInt(input.value) || 1;
+      const unitPrice = parseInt(btn.dataset.price);
+      const totalPrice = quantity * unitPrice;
+      
+      // コイン残高チェック
+      const currentCoins = parseInt(q('#coin-count').textContent) || 0;
+      if (currentCoins < totalPrice) {
+        alert('コインが足りません');
+        return;
+      }
+      
+      try {
+        btn.disabled = true;
+        btn.textContent = '購入中...';
+        
+        const res = await fetch('/buy_food', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            food_name: foodName,
+            quantity: quantity  // 個数を追加
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          updateUI(data);
+          
+          // 購入後は個数を1にリセット
+          input.value = 1;
+          updateTotalPrice(foodName);
+          
+          // 成功メッセージ
+          btn.textContent = '購入完了！';
+          setTimeout(() => {
+            btn.textContent = '購入';
+            btn.disabled = false;
+          }, 1000);
+        } else {
+          alert(data.error || '購入に失敗しました');
+          btn.textContent = '購入';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        console.error('エラー:', err);
+        alert('通信エラーが発生しました');
+        btn.textContent = '購入';
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
 // =============================================================================
 // 購入処理
 // =============================================================================
@@ -383,6 +504,7 @@ function init() {
   initBuyButtons();
   initFeedButtons();
   initLevelUpModal();
+  initQuantitySelectors();
 }
 
 init();

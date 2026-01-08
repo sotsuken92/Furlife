@@ -148,9 +148,22 @@
                   </div>
                 </div>
               </div>
-              <button class="buy-btn" data-food="{{ food.name }}" data-price="{{ food.price }}" {% if pet.coins < food.price %}disabled{% endif %}>
-                購入
-              </button>
+              
+              <!-- 個数選択UI -->
+              <div class="quantity-selector">
+                <button class="quantity-btn quantity-minus" data-food="{{ food.name }}" data-price="{{ food.price }}">-</button>
+                <input type="number" class="quantity-input" data-food="{{ food.name }}" value="1" min="1" max="999">
+                <button class="quantity-btn quantity-plus" data-food="{{ food.name }}" data-price="{{ food.price }}">+</button>
+              </div>
+              
+              <div class="buy-section">
+                <div class="total-price" data-food="{{ food.name }}">
+                  合計: <span class="total-amount">{{ food.price }}</span> コイン
+                </div>
+                <button class="buy-btn" data-food="{{ food.name }}" data-price="{{ food.price }}" {% if pet.coins < food.price %}disabled{% endif %}>
+                  購入
+                </button>
+              </div>
             </div>
           {% endfor %}
         </div>

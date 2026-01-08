@@ -885,6 +885,15 @@ def buy_food():
     pet = get_user_pet()
     data = request.get_json()
     food_name = data.get("food_name")
+    quantity = data.get("quantity", 1)  # 個数を取得（デフォルト1）
+    
+    # 個数のバリデーション
+    try:
+        quantity = int(quantity)
+        if quantity < 1 or quantity > 999:
+            return jsonify({"error": "個数は1〜999の範囲で指定してください"}), 400
+    except (ValueError, TypeError):
+        return jsonify({"error": "無効な個数です"}), 400
     
     food_prices = {
         '基本の餌': 1,
@@ -896,14 +905,15 @@ def buy_food():
     if food_name not in food_prices:
         return jsonify({"error": "無効な餌です"}), 400
     
-    price = food_prices[food_name]
+    unit_price = food_prices[food_name]
+    total_price = unit_price * quantity
     
-    if pet["coins"] < price:
+    if pet["coins"] < total_price:
         return jsonify({"error": "コインが足りません"}), 400
     
-    pet["coins"] -= price
-    pet["inventory"][food_name] = pet["inventory"].get(food_name, 0) + 1
-    pet["message"] = f"『{food_name}』を購入しました!"
+    pet["coins"] -= total_price
+    pet["inventory"][food_name] = pet["inventory"].get(food_name, 0) + quantity
+    pet["message"] = f"『{food_name}』を{quantity}個購入しました！"
     save_user_pet(pet)
     
     return jsonify({
