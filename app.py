@@ -226,28 +226,21 @@ def increment_育成_count(image_name):
     if not username or image_name.startswith("egg"):
         return
     
+    # ★デバッグ用ログ追加
+    print(f"[DEBUG] Incrementing 育成_count for {username}: {image_name}")
+    
     # ★重要: MongoDBの$incオペレーターを使って原子的に更新
-    # これにより競合状態を防ぐ
     result = pokedex_collection.update_one(
         {"username": username},
         {
-            "$inc": {f"育成_counts.{image_name}": 1}
+            "$inc": {f"育成_counts.{image_name}": 1},
+            "$setOnInsert": {"discovered": []}  # 新規作成時のみdiscoveredを初期化
         },
         upsert=True
     )
     
-    # もしドキュメントが存在しない場合は初期化
-    if result.matched_count == 0:
-        pokedex_collection.update_one(
-            {"username": username},
-            {
-                "$set": {
-                    "discovered": [],
-                    f"育成_counts.{image_name}": 1
-                }
-            },
-            upsert=True
-        )
+    # ★デバッグ用ログ追加
+    print(f"[DEBUG] Update result - matched: {result.matched_count}, modified: {result.modified_count}, upserted: {result.upserted_id}")
 
 # =============================================================================
 # ユーティリティ関数
@@ -1129,8 +1122,13 @@ def feed():
         # 図鑑に追加
         add_to_pokedex(evolved_image)
         
-        # 育成回数をカウント
+        # ★重要: 育成回数をカウント
         increment_育成_count(evolved_image)
+        
+        # ★デバッグ: カウント後のデータを確認
+        print(f"[DEBUG] Fed pet, leveled up to {pet['level']}, image: {evolved_image}")
+        updated_pokedex = get_user_pokedex()
+        print(f"[DEBUG] 育成_counts for {evolved_image}: {updated_pokedex['育成_counts'].get(evolved_image, 0)}")
         
         # メッセージ生成
         if pet["level"] == max_level:
