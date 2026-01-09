@@ -433,10 +433,11 @@ function initFeedButton() {
         const timestamp = Date.now();
         const imageWithCache = `${data.image}?t=${timestamp}`;
         
+        // ★修正: start_levelを正しく使用
         showLevelUpModal({
-          oldLevel: data.start_level || data.level - 1,
-          newLevel: data.level,
-          petImage: imageWithCache, // キャッシュバスター付き
+          oldLevel: data.start_level,  // ★修正: これが開始レベル
+          newLevel: data.level,         // これが最終レベル
+          petImage: imageWithCache,
           petType: petType,
           evolution: isFinalEvolution ? data.evolution : undefined,
           levelsGained: data.levels_gained

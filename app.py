@@ -1116,13 +1116,13 @@ def feed():
 
     # ★修正: レベルアップした場合のみ、到達したレベルの画像を図鑑に追加
     if levels_gained > 0:
-        # ★修正: 飛び級した場合は最終到達レベルのみ登録
+        # ★修正: 保存後に画像を取得（最新のレベル/進化タイプで取得）
         evolved_image = get_pet_image()
         
         # 図鑑に追加
         add_to_pokedex(evolved_image)
         
-        # ★重要: 育成回数をカウント（最終到達レベルのみ）
+        # ★重要: 育成回数をカウント
         increment_育成_count(evolved_image)
         
         # ★デバッグ: カウント後のデータを確認
@@ -1151,7 +1151,7 @@ def feed():
             "evolution": pet.get("evolution", 1),
             "inventory": pet["inventory"],
             "levels_gained": levels_gained,
-            "start_level": start_level
+            "start_level": start_level  # ★修正: これが開始レベル（Lv0など）
         })
     else:
         required_exp = EXP_TABLE.get(pet["level"], 0)

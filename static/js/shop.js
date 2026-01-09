@@ -284,8 +284,9 @@ function initFeedButtons() {
             localStorage.setItem('lastDiscoveredPet', data.image);
           }
           
+          // ★修正: start_levelを使用
           showLevelUpModal({
-            oldLevel: data.start_level,
+            oldLevel: data.start_level,  // ★修正: これが開始レベル
             newLevel: data.level,
             petImage: data.image,
             petType: data.pet_type || 1,
