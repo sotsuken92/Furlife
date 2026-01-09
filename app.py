@@ -28,7 +28,14 @@ if not MONGODB_URI:
     raise ValueError("MONGODB_URI環境変数が設定されていません")
 
 # MongoDBクライアントの初期化
-client = MongoClient(MONGODB_URI)
+client = MongoClient(
+    MONGODB_URI,
+    maxPoolSize=10,      # 接続を使い回す
+    minPoolSize=2,       # 最低2つの接続を保持
+    maxIdleTimeMS=45000, # 45秒間接続を保持
+    connectTimeoutMS=5000,
+    serverSelectionTimeoutMS=5000
+)
 db = client.furlife_db  # データベース名
 
 # コレクション定義
@@ -1096,7 +1103,6 @@ def feed():
     # レベルアップ判定（ループ内では保存しない）
     while pet["level"] < max_level:
         required_exp = EXP_TABLE.get(pet["level"], 999)
-        
         if pet["exp"] >= required_exp:
             pet["level"] += 1
             pet["exp"] -= required_exp
@@ -1104,33 +1110,19 @@ def feed():
         else:
             break
 
-    # 最終進化の場合、進化タイプを決定
     if pet["level"] == max_level:
         pet["evolution"] = get_evolution_type(pet_type)
 
-    # ★重要: ここで一度だけデータベースに保存
     save_user_pet(pet)
 
-    # ★重要: 保存後に最新データを再取得（データベース同期を保証）
-    pet = get_user_pet()
-
-    # ★修正: レベルアップした場合のみ、到達したレベルの画像を図鑑に追加
+    # ★改善: レベルアップした場合のみ図鑑更新
     if levels_gained > 0:
-        # ★修正: 保存後に画像を取得（最新のレベル/進化タイプで取得）
+        # ★改善: 画像取得を1回だけに
         evolved_image = get_pet_image()
-        
-        # 図鑑に追加
         add_to_pokedex(evolved_image)
-        
-        # ★重要: 育成回数をカウント
         increment_育成_count(evolved_image)
         
-        # ★デバッグ: カウント後のデータを確認
-        print(f"[DEBUG] Fed pet, leveled up to {pet['level']}, image: {evolved_image}")
-        updated_pokedex = get_user_pokedex()
-        print(f"[DEBUG] 育成_counts for {evolved_image}: {updated_pokedex['育成_counts'].get(evolved_image, 0)}")
-        
-        # メッセージ生成
+        # ★改善: メッセージ生成
         if pet["level"] == max_level:
             pet["message"] = f"最終進化!タイプ{pet['evolution']}に進化した!!!(Lv.{start_level}→Lv.{pet['level']})" if levels_gained > 1 else f"最終進化!タイプ{pet['evolution']}に進化した!!!"
         elif levels_gained == 1:
@@ -1138,7 +1130,6 @@ def feed():
         else:
             pet["message"] = f"{levels_gained}レベルアップ!!!(Lv.{start_level}→Lv.{pet['level']})"
         
-        # ★重要: メッセージ更新後も保存
         save_user_pet(pet)
         
         return jsonify({
@@ -1151,9 +1142,10 @@ def feed():
             "evolution": pet.get("evolution", 1),
             "inventory": pet["inventory"],
             "levels_gained": levels_gained,
-            "start_level": start_level  # ★修正: これが開始レベル（Lv0など）
+            "start_level": start_level
         })
     else:
+        # レベルアップしなかった場合
         required_exp = EXP_TABLE.get(pet["level"], 0)
         pet["message"] = f"経験値+{exp_gain}! (EXP: {pet['exp']}/{required_exp})"
         save_user_pet(pet)
@@ -1221,9 +1213,28 @@ def manifest():
     return send_from_directory('static', 'manifest.json')
 
 # =============================================================================
+# データベースインデックス作成
+# =============================================================================
+
+def init_db():
+    """データベースのインデックスを作成（高速化のため）"""
+    print("📊 Creating database indexes...")
+    try:
+        events_collection.create_index([("username", 1)])
+        pokedex_collection.create_index([("username", 1)])
+        users_collection.create_index([("username", 1)], unique=True)
+        goals_collection.create_index([("username", 1)])
+        locations_collection.create_index([("username", 1)])
+        pets_collection.create_index([("username", 1)])
+        print("✅ Indexes created successfully")
+    except Exception as e:
+        print(f"⚠️ Index creation note: {e}")
+
+# =============================================================================
 # アプリケーション起動
 # =============================================================================
 
 if __name__ == "__main__":
+    init_db()
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, host="0.0.0.0", port=port)
