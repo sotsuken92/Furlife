@@ -1360,3 +1360,82 @@
   font-size: 1.125rem;
 }
 
+/* =============================================================================
+  ペット名編集機能
+   ============================================================================= */
+
+.pet-name-display {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-align: center;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+
+.pet-name-display:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+  transform: scale(1.02);
+}
+
+.pet-name-display.editable::after {
+  content: ' ✏️';
+  font-size: 1.25rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.pet-name-display.editable:hover::after {
+  opacity: 0.6;
+}
+
+.pet-name-input-edit {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-primary);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 0 auto 24px;
+  display: block;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.pet-name-input-edit:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  transform: scale(1.02);
+}
+
+.pet-name-input-edit::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .pet-name-display {
+    font-size: 1.5rem;
+    padding: 6px 12px;
+  }
+  
+  .pet-name-display.editable::after {
+    font-size: 1rem;
+  }
+  
+  .pet-name-input-edit {
+    font-size: 1.25rem;
+    padding: 10px 12px;
+  }
+}

@@ -244,8 +244,69 @@ function initPetDetailModal() {
 // =============================================================================
 
 function initPetName() {
-  const petName = localStorage.getItem('petName') || '名前未設定';
-  q('#pet-name-display').textContent = petName;
+  const petNameDisplay = q('#pet-name-display');
+  const petNameInput = q('#pet-name-input-edit');
+  const savedName = localStorage.getItem('petName') || '';
+  
+  // 初期表示
+  if (savedName) {
+    petNameDisplay.textContent = savedName;
+  } else {
+    petNameDisplay.textContent = '名前未設定';
+  }
+  
+  // 表示をクリックして編集モードに
+  petNameDisplay.addEventListener('click', () => {
+    enterEditMode();
+  });
+  
+  // Enterキーで保存
+  petNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveAndExitEditMode();
+    } else if (e.key === 'Escape') {
+      exitEditMode();
+    }
+  });
+  
+  // フォーカスを失ったら保存
+  petNameInput.addEventListener('blur', () => {
+    saveAndExitEditMode();
+  });
+  
+  function enterEditMode() {
+    const currentName = localStorage.getItem('petName') || '';
+    petNameInput.value = currentName;
+    
+    petNameDisplay.classList.add('hidden');
+    petNameInput.classList.remove('hidden');
+    
+    // 少し遅延させてからフォーカス（アニメーション対応）
+    setTimeout(() => {
+      petNameInput.focus();
+      petNameInput.select();
+    }, 50);
+  }
+  
+  function saveAndExitEditMode() {
+    const newName = petNameInput.value.trim();
+    
+    if (newName) {
+      localStorage.setItem('petName', newName);
+      petNameDisplay.textContent = newName;
+    } else {
+      localStorage.removeItem('petName');
+      petNameDisplay.textContent = '名前未設定';
+    }
+    
+    exitEditMode();
+  }
+  
+  function exitEditMode() {
+    petNameInput.classList.add('hidden');
+    petNameDisplay.classList.remove('hidden');
+  }
 }
 
 // =============================================================================

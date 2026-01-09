@@ -81,7 +81,8 @@
       <div class="card">
         <h1 class="card-title"> ペット詳細</h1>
 
-        <div id="pet-name-display" class="pet-name-display">名前未設定</div>
+        <div id="pet-name-display" class="pet-name-display editable" title="クリックして名前を編集">名前未設定</div>
+        <input type="text" id="pet-name-input-edit" class="pet-name-input-edit hidden" maxlength="10" placeholder="名前を入力">
 
         <img id="pet-img-large" src="/static/images/{{ image }}" alt="ペットの画像" class="pet-image-large" />
 
