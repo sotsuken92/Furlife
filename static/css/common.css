@@ -274,17 +274,17 @@
 
 /* 赤ダーク */
 [data-theme="red-dark"] {
-  --bg-primary: #450a0a;
-  --bg-secondary: #7f1d1d;
-  --bg-tertiary: #450a0a;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #1a1a1a;
   --text-primary: #fef2f2;
   --text-secondary: #fecaca;
   --text-tertiary: #fca5a5;
   --accent-primary: #f87171;
   --accent-secondary: #ef4444;
   --accent-gradient: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-  --border-color: #991b1b;
-  --hover-bg: #991b1b;
+  --border-color: #3d3d3d;
+  --hover-bg: #3d3d3d;
   --success-color: #34d399;
   --danger-color: #f87171;
   --warning-color: #fbbf24;
@@ -314,17 +314,17 @@
 
 /* オレンジダーク */
 [data-theme="orange-dark"] {
-  --bg-primary: #431407;
-  --bg-secondary: #7c2d12;
-  --bg-tertiary: #431407;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #1a1a1a;
   --text-primary: #fff7ed;
   --text-secondary: #fed7aa;
   --text-tertiary: #fdba74;
   --accent-primary: #fb923c;
   --accent-secondary: #f97316;
   --accent-gradient: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
-  --border-color: #9a3412;
-  --hover-bg: #9a3412;
+  --border-color: #3d3d3d;
+  --hover-bg: #3d3d3d;
   --success-color: #34d399;
   --danger-color: #f87171;
   --warning-color: #fbbf24;
@@ -354,17 +354,17 @@
 
 /* 黄色ダーク */
 [data-theme="yellow-dark"] {
-  --bg-primary: #422006;
-  --bg-secondary: #713f12;
-  --bg-tertiary: #422006;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #1a1a1a;
   --text-primary: #fefce8;
   --text-secondary: #fef08a;
   --text-tertiary: #fde047;
   --accent-primary: #facc15;
   --accent-secondary: #eab308;
   --accent-gradient: linear-gradient(135deg, #facc15 0%, #eab308 100%);
-  --border-color: #854d0e;
-  --hover-bg: #854d0e;
+  --border-color: #3d3d3d;
+  --hover-bg: #3d3d3d;
   --success-color: #34d399;
   --danger-color: #f87171;
   --warning-color: #fbbf24;
@@ -394,17 +394,17 @@
 
 /* 緑ダーク */
 [data-theme="green-dark"] {
-  --bg-primary: #052e16;
-  --bg-secondary: #14532d;
-  --bg-tertiary: #052e16;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #1a1a1a;
   --text-primary: #f0fdf4;
   --text-secondary: #bbf7d0;
   --text-tertiary: #86efac;
   --accent-primary: #4ade80;
   --accent-secondary: #22c55e;
   --accent-gradient: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-  --border-color: #166534;
-  --hover-bg: #166534;
+  --border-color: #3d3d3d;
+  --hover-bg: #3d3d3d;
   --success-color: #34d399;
   --danger-color: #f87171;
   --warning-color: #fbbf24;
@@ -434,17 +434,17 @@
 
 /* 青ダーク */
 [data-theme="blue-dark"] {
-  --bg-primary: #0c4a6e;
-  --bg-secondary: #075985;
-  --bg-tertiary: #0c4a6e;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #1a1a1a;
   --text-primary: #e0f2fe;
   --text-secondary: #bae6fd;
   --text-tertiary: #7dd3fc;
   --accent-primary: #38bdf8;
   --accent-secondary: #0ea5e9;
   --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
-  --border-color: #0369a1;
-  --hover-bg: #0369a1;
+  --border-color: #3d3d3d;
+  --hover-bg: #3d3d3d;
   --success-color: #34d399;
   --danger-color: #f87171;
   --warning-color: #fbbf24;
@@ -474,20 +474,20 @@
 
 /* 紫ダーク (既存のダークテーマ) */
 [data-theme="purple-dark"] {
-  --bg-primary: #1a202c;
-  --bg-secondary: #2d3748;
-  --bg-tertiary: #1a202c;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #1a1a1a;
   --text-primary: #e2e8f0;
   --text-secondary: #cbd5e0;
   --text-tertiary: #a0aec0;
   --accent-primary: #667eea;
   --accent-secondary: #764ba2;
   --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --border-color: #4a5568;
-  --hover-bg: #374151;
-  --success-color: #48bb78;
-  --danger-color: #ef4444;
-  --warning-color: #f59e0b;
+  --border-color: #3d3d3d;
+  --hover-bg: #3d3d3d;
+  --success-color: #34d399;
+  --danger-color: #f87171;
+  --warning-color: #fbbf24;
 }
 
 /* 後方互換性のためのエイリアス */
