@@ -1092,7 +1092,7 @@ def feed():
     
     start_level = pet["level"]
     levels_gained = 0
-    
+
     # レベルアップ判定（ループ内では保存しない）
     while pet["level"] < max_level:
         required_exp = EXP_TABLE.get(pet["level"], 999)
@@ -1103,26 +1103,26 @@ def feed():
             levels_gained += 1
         else:
             break
-    
+
     # 最終進化の場合、進化タイプを決定
     if pet["level"] == max_level:
         pet["evolution"] = get_evolution_type(pet_type)
-    
+
     # ★重要: ここで一度だけデータベースに保存
     save_user_pet(pet)
-    
+
     # ★重要: 保存後に最新データを再取得（データベース同期を保証）
     pet = get_user_pet()
-    
-    # レベルアップした場合のみ図鑑更新
+
+    # ★修正: レベルアップした場合のみ、到達したレベルの画像を図鑑に追加
     if levels_gained > 0:
-        # ★重要: 保存後に画像を取得（最新のレベル/進化タイプで取得）
+        # ★修正: 飛び級した場合は最終到達レベルのみ登録
         evolved_image = get_pet_image()
         
         # 図鑑に追加
         add_to_pokedex(evolved_image)
         
-        # ★重要: 育成回数をカウント
+        # ★重要: 育成回数をカウント（最終到達レベルのみ）
         increment_育成_count(evolved_image)
         
         # ★デバッグ: カウント後のデータを確認
