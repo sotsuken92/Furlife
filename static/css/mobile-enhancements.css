@@ -559,8 +559,11 @@
   
   /* タイムラインコンテナの高さ調整 */
   .timeline-container {
-    height: 500px;
-    overflow-x: hidden; /* 横スクロールを防止 */
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    height: 600px;
+    position: relative;
+    overflow: hidden;
   }
   
   /* タイムライングリッドの調整 */
