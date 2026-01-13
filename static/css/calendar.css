@@ -1363,12 +1363,25 @@
     height: 400px;
   }
 
+/* タイムラインイベントの幅調整 */
   .timeline-event {
-    width: 200px;
-    min-width: 200px;
-    max-width: 200px;
-    font-size: 0.813rem;
-    padding: 6px;
+    width: calc(100% - 70px) !important;
+    min-width: auto !important;
+    max-width: calc(100% - 70px) !important;
+    left: 68px !important;
+    min-height: 80px; /* ボタンが押しやすいように */
+    padding: 12px;
+  }
+  
+  /* 時間軸の幅調整 */
+  .timeline-hours {
+    width: 60px;
+    flex-shrink: 0;
+  }
+  
+  /* 時間ラベルのフォントサイズ調整 */
+  .hour-label {
+    font-size: 1rem;
   }
 
   .timeline-event-time {
