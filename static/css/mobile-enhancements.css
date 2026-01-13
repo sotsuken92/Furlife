@@ -574,11 +574,42 @@
   
   /* タイムラインイベントの幅調整 */
   .timeline-event {
-    width: calc(100% - 70px) !important;
+    width: calc(50% - 72px) !important;
     min-width: auto !important;
-    max-width: calc(100% - 70px) !important;
+    max-width: calc(50% - 72px) !important;
     left: 68px !important;
+    font-size: 0.75rem;
   }
+
+  .timeline-event[data-column="1"] {
+    left: calc(50% + 2px) !important;
+  }
+
+  .timeline-event[data-column="2"] {
+    left: 68px !important;
+    opacity: 0.9;
+  }
+
+  .timeline-event[data-column="3"] {
+    left: calc(50% + 2px) !important;
+    opacity: 0.9;
+  }
+
+  /* タイムラインイベント内の要素サイズ調整 */
+  .timeline-event-time {
+    font-size: 0.625rem;
+  }
+  
+  .timeline-event-location {
+    font-size: 0.563rem;
+  }
+  
+  .timeline-event-text {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
   
   /* 時間軸の幅調整 */
   .timeline-hours {
@@ -590,27 +621,28 @@
   .timeline-event-actions {
     position: static;
     transform: none;
-    margin-top: 8px;
+    margin-top: 6px;
     padding: 0;
     background: transparent;
     border: none;
     box-shadow: none;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: wrap;
     display: flex !important;
-    gap: 4px;
+    gap: 3px;
   }
   
   .timeline-event-actions .btn {
-    flex: 1;
-    min-width: 80px;
-    font-size: 0.75rem;
-    padding: 6px 8px;
+    width: 100%;
+    font-size: 0.688rem;
+    padding: 4px 6px;
   }
   
   .timeline-event-actions .badge {
     width: 100%;
     text-align: center;
+    font-size: 0.688rem;
+    padding: 3px 6px;
   }
   
   /* フォーム入力の調整 */
