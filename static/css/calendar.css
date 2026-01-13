@@ -73,6 +73,7 @@
   height: 600px;
   position: relative;
   overflow: hidden;
+  --hour-height: 300px;
 }
 
 .timeline-scroll {
@@ -84,7 +85,7 @@
 .timeline-grid {
   display: grid;
   grid-template-columns: 60px 1fr;
-  min-height: 2400px;
+  min-height: calc(var(--hour-height) * 24);
   min-width: 800px;
   position: relative;
 }
@@ -97,7 +98,7 @@
 }
 
 .hour-label {
-  height: 100px;
+  height: var(--hour-height);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,9 +125,9 @@
   background-image: repeating-linear-gradient(
     to bottom,
     transparent,
-    transparent 99px,
-    var(--border-color) 99px,
-    var(--border-color) 100px
+    transparent calc(var(--hour-height) - 1px), 
+    var(--border-color) calc(var(--hour-height) - 1px),
+    var(--border-color) var(--hour-height)
   );
   pointer-events: none;
 }
@@ -1331,6 +1332,8 @@
   .timeline-container {
     height: 400px;
   }
+
+  
 
   .timeline-event {
     width: 200px;
