@@ -455,8 +455,14 @@ function displayEventsForDate(dateStr) {
       div.style.height = `${Math.max(height, 2)}%`;
       
       const columnIndex = eventColumnMap.get(ev);
-      const leftOffset = columnIndex * 260;
-      div.style.left = `${leftOffset + 8}px`;
+
+      div.setAttribute('data-column', columnIndex);
+
+      if (!isMobile) {
+        const leftOffset = columnIndex * 260;
+        div.style.left = `${leftOffset + 8}px`;
+      }
+
       
       const locationColor = locations[ev.location] || locations['その他'] || '#64748b';
       div.style.background = locationColor;
@@ -510,6 +516,21 @@ function displayEventsForDate(dateStr) {
       }
     }
   }
+
+  window.addEventListener('resize', () => {
+    const isMobile = window.innerWidth <= 768;
+    qa('.timeline-event').forEach(eventDiv => {
+      const columnIndex = parseInt(eventDiv.getAttribute('data-column') || '0');
+      if (!isMobile) {
+        const leftOffset = columnIndex * 260;
+        eventDiv.style.left = `${leftOffset + 8}px`;
+      } else {
+        // モバイルではCSSで制御するのでリセット
+        eventDiv.style.left = '';
+      }
+    });
+  });
+
 }
 
 // =============================================================================
