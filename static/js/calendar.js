@@ -362,6 +362,8 @@ function isOverlapping(ev1, ev2) {
   return start1 < end2 && start2 < end1;
 }
 
+// calendar.jsのdisplayEventsForDate関数内に追加
+
 function displayEventsForDate(dateStr) {
   currentDisplayDate = dateStr;
   const titleEl = q("#selected-date-label");
@@ -426,18 +428,15 @@ function displayEventsForDate(dateStr) {
     
     const nowTime = q('.current-time-label')?.textContent || '00:00';
     const nowDateTime = new Date(`${today}T${nowTime}:00`);
-    const selectedDateTime = new Date(`${dateStr}T23:59:59`);
     
     sortedEvents.forEach(ev => {
       const isToday = dateStr === today;
       const startTime = ev.start_time || ev.time || '00:00';
       const endTime = ev.end_time || '23:59';
       
-      // 🔧 修正: 選択した日付が今日より前、または今日で終了時刻が過ぎている場合
       const eventEndDateTime = new Date(`${dateStr}T${endTime}:00`);
       const isPast = eventEndDateTime < nowDateTime;
       
-      // 🔧 修正: 削除可能条件 - 未来の予定で未判定、または既に判定済み
       const canDelete = !isPast || ev.done !== null;
       
       const startMinutes = getMinutes(startTime);
@@ -455,14 +454,16 @@ function displayEventsForDate(dateStr) {
       div.style.height = `${Math.max(height, 2)}%`;
       
       const columnIndex = eventColumnMap.get(ev);
-
+      
+      // ★追加: モバイル用のカラム属性を設定
       div.setAttribute('data-column', columnIndex);
-
+      
+      // ★修正: PC版では既存のオフセット計算、モバイルではCSSで制御
+      const isMobile = window.innerWidth <= 768;
       if (!isMobile) {
         const leftOffset = columnIndex * 260;
         div.style.left = `${leftOffset + 8}px`;
       }
-
       
       const locationColor = locations[ev.location] || locations['その他'] || '#64748b';
       div.style.background = locationColor;
@@ -475,7 +476,6 @@ function displayEventsForDate(dateStr) {
       div.dataset.location = ev.location || 'その他';
       
       let buttonsHTML = '';
-      // 🔧 修正: 過去の予定で未判定の場合は常にボタン表示
       if (isPast && ev.done === null) {
         buttonsHTML = `
           <button class="btn btn-success btn-small done-btn" data-id="${ev.id}" data-date="${dateStr}" data-done="true">できた</button>
@@ -487,7 +487,6 @@ function displayEventsForDate(dateStr) {
           : '<span class="badge badge-danger">✗ できなかった</span>';
       }
       
-      // 🔧 修正: 削除ボタンは未来の予定または判定済みの予定に表示
       if (canDelete) {
         buttonsHTML += `<button class="btn btn-danger btn-small delete-btn" data-id="${ev.id}" data-date="${dateStr}">削除</button>`;
       }
@@ -516,7 +515,8 @@ function displayEventsForDate(dateStr) {
       }
     }
   }
-
+  
+  // ★追加: リサイズ時の再計算
   window.addEventListener('resize', () => {
     const isMobile = window.innerWidth <= 768;
     qa('.timeline-event').forEach(eventDiv => {
@@ -530,7 +530,45 @@ function displayEventsForDate(dateStr) {
       }
     });
   });
+  
+  // ★追加: モバイルでのクリックイベント処理
+  initMobileEventClick();
+}
 
+// ★追加: モバイルで予定をクリックしたときの処理
+function initMobileEventClick() {
+  const timelineEventsEl = q("#timeline-events");
+  if (!timelineEventsEl) return;
+  
+  timelineEventsEl.addEventListener('click', (e) => {
+    // モバイルでない場合は何もしない
+    if (window.innerWidth > 768) return;
+    
+    const clickedEvent = e.target.closest('.timeline-event');
+    if (!clickedEvent) {
+      // 予定以外をクリックした場合、すべての選択を解除
+      qa('.timeline-event.mobile-selected').forEach(el => {
+        el.classList.remove('mobile-selected');
+      });
+      return;
+    }
+    
+    // ボタンをクリックした場合は選択処理をスキップ
+    if (e.target.closest('.timeline-event-actions')) {
+      return;
+    }
+    
+    // すでに選択されている場合は解除
+    if (clickedEvent.classList.contains('mobile-selected')) {
+      clickedEvent.classList.remove('mobile-selected');
+    } else {
+      // 他の選択を解除して、クリックした予定を選択
+      qa('.timeline-event.mobile-selected').forEach(el => {
+        el.classList.remove('mobile-selected');
+      });
+      clickedEvent.classList.add('mobile-selected');
+    }
+  });
 }
 
 // =============================================================================

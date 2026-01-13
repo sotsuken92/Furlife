@@ -628,8 +628,17 @@
     box-shadow: none;
     flex-direction: column;
     flex-wrap: wrap;
-    display: flex !important;
+    display: none !important;
     gap: 3px;
+  }
+  
+  .timeline-event.mobile-selected .timeline-event-actions {
+    display: flex !important;
+  }
+  
+  .timeline-event.mobile-selected {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    z-index: 100;
   }
   
   .timeline-event-actions .btn {
