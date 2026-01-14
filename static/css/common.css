@@ -1116,7 +1116,7 @@ body {
 }
 
 .theme-color-box.active::after {
-  content: '✓';
+  content: '$2713';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1127,7 +1127,7 @@ body {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* 各カラーボックスの定義 */
+/* 各カラーボックスの定義 - ライトモード */
 .theme-color-box.red { background: linear-gradient(135deg, #dc2626, #b91c1c); }
 .theme-color-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); }
 .theme-color-box.yellow { background: linear-gradient(135deg, #eab308, #ca8a04); }
@@ -1135,12 +1135,13 @@ body {
 .theme-color-box.blue { background: linear-gradient(135deg, #3182ce, #2c5282); }
 .theme-color-box.purple { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
 
-.theme-color-box.red-dark { background: linear-gradient(135deg, #7f1d1d, #450a0a); }
-.theme-color-box.orange-dark { background: linear-gradient(135deg, #7c2d12, #431407); }
-.theme-color-box.yellow-dark { background: linear-gradient(135deg, #713f12, #422006); }
-.theme-color-box.green-dark { background: linear-gradient(135deg, #14532d, #052e16); }
-.theme-color-box.blue-dark { background: linear-gradient(135deg, #075985, #0c4a6e); }
-.theme-color-box.purple-dark { background: linear-gradient(135deg, #2d3748, #1a202c); }
+/* 各カラーボックスの定義 - ダークモード（明るめに調整） */
+.theme-color-box.red-dark { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+.theme-color-box.orange-dark { background: linear-gradient(135deg, #f97316, #ea580c); }
+.theme-color-box.yellow-dark { background: linear-gradient(135deg, #eab308, #ca8a04); }
+.theme-color-box.green-dark { background: linear-gradient(135deg, #2e7d32, #1b5e20); }
+.theme-color-box.blue-dark { background: linear-gradient(135deg, #3182ce, #2c5282); }
+.theme-color-box.purple-dark { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {

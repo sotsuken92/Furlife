@@ -528,10 +528,7 @@ def signup():
             "created_at": datetime.now(JST).isoformat()
         })
         
-        session["username"] = username
-        return redirect(url_for("redirect_to_current_month"))
-    
-    return render_template("login.html")
+        return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
