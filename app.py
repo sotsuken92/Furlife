@@ -303,15 +303,15 @@ EXP_TABLE = {
 def calculate_success_reward(duration_minutes):
     """予定達成時のコインの獲得数を計算"""
     if duration_minutes < 30:
-        return 5
-    elif duration_minutes < 60:
         return 10
+    elif duration_minutes < 60:
+        return 20
     elif duration_minutes < 120:
-        return 25
+        return 50
     elif duration_minutes < 180:
-        return 48
+        return 100
     else:
-        return 140
+        return 250
 
 def calculate_failure_penalty(duration_minutes, current_level, pet_type):
     """予定失敗時のペナルティを計算"""
