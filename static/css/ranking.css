@@ -1,0 +1,389 @@
+/* =============================================================================
+  ランキングページ
+   ============================================================================= */
+
+.ranking-title {
+  background: var(--accent-gradient);
+  padding: 32px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.ranking-title h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+/* =============================================================================
+  自分の順位カード
+   ============================================================================= */
+
+.my-rank-card {
+  background: var(--bg-secondary);
+  padding: 32px;
+  margin-bottom: 24px;
+  border-left: 4px solid var(--accent-primary);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border-radius: 8px;
+}
+
+.my-rank-card .card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.my-rank-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.my-rank-item {
+  background: var(--accent-gradient);
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: white;
+}
+
+.rank-label {
+  font-size: 0.938rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  opacity: 0.95;
+}
+
+.rank-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rank-number {
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.rank-suffix {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.rank-detail {
+  font-size: 1rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* =============================================================================
+  ランキングテーブル
+   ============================================================================= */
+
+.ranking-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.ranking-card {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-left: 4px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-radius: 8px;
+}
+
+.ranking-card .card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.ranking-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.ranking-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ranking-header {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ranking-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  align-items: center;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.ranking-row:hover {
+  background: var(--hover-bg);
+  transform: translateX(4px);
+}
+
+.ranking-row.highlight {
+  border-color: var(--accent-primary);
+  background: var(--hover-bg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rank-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.medal {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.rank-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.user-col {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.username {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge-you {
+  background: var(--accent-primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.score-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.score-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.score-max {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.stars {
+  font-size: 1rem;
+  color: #fbbf24;
+  text-shadow: 0 0 4px rgba(251, 191, 36, 0.6);
+}
+
+.star-count {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.ranking-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.938rem;
+}
+
+/* =============================================================================
+  戻るボタン
+   ============================================================================= */
+
+.back-button-container {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.back-button-container .btn {
+  display: inline-block;
+  width: auto;
+  min-width: 200px;
+  text-decoration: none;
+}
+
+/* =============================================================================
+  レスポンシブ対応
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .ranking-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  /* タイトル */
+  .ranking-title {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .ranking-title h1 {
+    font-size: 1.5rem;
+  }
+
+  /* 自分の順位カード */
+  .my-rank-card {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .my-rank-card .card-title {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+  }
+
+  .my-rank-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .my-rank-item {
+    padding: 20px;
+  }
+
+  .rank-label {
+    font-size: 0.875rem;
+  }
+
+  .rank-number {
+    font-size: 2.5rem;
+  }
+
+  .rank-suffix {
+    font-size: 1.125rem;
+  }
+
+  .rank-detail {
+    font-size: 0.938rem;
+    padding: 6px 12px;
+  }
+
+  /* ランキングテーブル */
+  .ranking-card {
+    padding: 16px;
+  }
+
+  .ranking-card .card-title {
+    font-size: 1.125rem;
+  }
+
+  .ranking-subtitle {
+    font-size: 0.813rem;
+    margin-bottom: 16px;
+  }
+
+  .ranking-header {
+    grid-template-columns: 60px 1fr 100px;
+    padding: 10px 12px;
+    font-size: 0.75rem;
+  }
+
+  .ranking-row {
+    grid-template-columns: 60px 1fr 100px;
+    padding: 12px;
+  }
+
+  .medal {
+    font-size: 1.5rem;
+  }
+
+  .rank-text {
+    font-size: 1.25rem;
+  }
+
+  .user-col {
+    padding: 0 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .username {
+    font-size: 0.875rem;
+  }
+
+  .badge-you {
+    padding: 2px 8px;
+    font-size: 0.688rem;
+  }
+
+  .score-value {
+    font-size: 1.25rem;
+  }
+
+  .score-max {
+    font-size: 0.75rem;
+  }
+
+  .stars {
+    font-size: 0.875rem;
+  }
+
+  .star-count {
+    font-size: 1rem;
+  }
+
+  /* 戻るボタン */
+  .back-button-container .btn {
+    width: 100%;
+    font-size: 0.875rem;
+  }
+}

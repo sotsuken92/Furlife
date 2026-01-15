@@ -1209,6 +1209,86 @@ def reset():
 def manifest():
     return send_from_directory('static', 'manifest.json')
 
+# app.pyの既存コードに以下を追加
+
+# =============================================================================
+# ランキングページ
+# =============================================================================
+
+@app.route("/ranking")
+def ranking():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    username = session.get("username")
+    
+    # 全ユーザーの図鑑データを取得
+    all_pokedex = list(pokedex_collection.find({}, {"username": 1, "discovered": 1, "育成_counts": 1}))
+    
+    # ランキングデータを計算
+    ranking_data = []
+    for user_data in all_pokedex:
+        user_username = user_data.get("username", "Unknown")
+        discovered = user_data.get("discovered", [])
+        育成_counts = user_data.get("育成_counts", {})
+        
+        # 発見数
+        discovery_count = len(discovered)
+        
+        # 総獲得★数を計算
+        total_stars = 0
+        for pet_image in discovered:
+            rarity = get_rarity_stars(pet_image)
+            if rarity:
+                total_stars += rarity
+        
+        ranking_data.append({
+            "username": user_username,
+            "discovery_count": discovery_count,
+            "total_stars": total_stars
+        })
+    
+    # 発見数ランキング（降順）
+    discovery_ranking = sorted(ranking_data, key=lambda x: x["discovery_count"], reverse=True)
+    
+    # ★数ランキング（降順）
+    stars_ranking = sorted(ranking_data, key=lambda x: x["total_stars"], reverse=True)
+    
+    # 自分の順位を取得
+    current_user_discovery_rank = None
+    current_user_stars_rank = None
+    current_user_data = None
+    
+    for i, user in enumerate(discovery_ranking, start=1):
+        if user["username"] == username:
+            current_user_discovery_rank = i
+            current_user_data = user
+            break
+    
+    for i, user in enumerate(stars_ranking, start=1):
+        if user["username"] == username:
+            current_user_stars_rank = i
+            break
+    
+    # トップ10を取得
+    top10_discovery = discovery_ranking[:10]
+    top10_stars = stars_ranking[:10]
+    
+    pet = get_user_pet()
+    
+    return render_template(
+        "ranking.html",
+        username=username,
+        pet=pet,
+        image=get_pet_image(),
+        exp_table=EXP_TABLE,
+        top10_discovery=top10_discovery,
+        top10_stars=top10_stars,
+        current_user_discovery_rank=current_user_discovery_rank,
+        current_user_stars_rank=current_user_stars_rank,
+        current_user_data=current_user_data
+    )
+
 # =============================================================================
 # データベースインデックス作成
 # =============================================================================

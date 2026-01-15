@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ランキング</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/ranking.css">
+  <!-- PWA用メタタグ -->
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Furlife">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+  <!-- モバイルUI拡張 -->
+  <link rel="stylesheet" href="/static/css/mobile-enhancements.css">
+</head>
+
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">🐾 Furlife</div>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">カレンダー</a>
+        <a href="/pet" class="nav-link">ペット詳細</a>
+        <a href="/shop" class="nav-link">ショップ</a>
+        <a href="/ranking" class="nav-link active">ランキング</a>
+        
+        <!-- 設定メニュー -->
+        <div class="settings-wrapper">
+          <div class="settings-trigger">設定 ▾</div>
+          <div class="settings-menu">
+            <!-- テーマ設定セクション -->
+            <div class="settings-section">
+              <div class="settings-section-header">
+                <span>テーマを選択</span>
+                <span class="settings-arrow">▼</span>
+              </div>
+              <div class="settings-section-content">
+                <!-- ライトテーマ -->
+                <div class="theme-category-title">ライトモード</div>
+                <div class="theme-grid">
+                  <div class="theme-color-box red" data-theme="red-light"></div>
+                  <div class="theme-color-box orange" data-theme="orange-light"></div>
+                  <div class="theme-color-box yellow" data-theme="yellow-light"></div>
+                  <div class="theme-color-box green" data-theme="green-light"></div>
+                  <div class="theme-color-box blue" data-theme="blue-light"></div>
+                  <div class="theme-color-box purple" data-theme="purple-light"></div>
+                </div>
+                
+                <!-- ダークテーマ -->
+                <div class="theme-category-title">ダークモード</div>
+                <div class="theme-grid">
+                  <div class="theme-color-box red-dark" data-theme="red-dark"></div>
+                  <div class="theme-color-box orange-dark" data-theme="orange-dark"></div>
+                  <div class="theme-color-box yellow-dark" data-theme="yellow-dark"></div>
+                  <div class="theme-color-box green-dark" data-theme="green-dark"></div>
+                  <div class="theme-color-box blue-dark" data-theme="blue-dark"></div>
+                  <div class="theme-color-box purple-dark" data-theme="purple-dark"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="coin-info"><img src="/static/images/coin/coin.jpg"> <span id="header-coin-count">{{ pet.coins }}</span></span>
+      <span class="user-info">{{ username }}さん</span>
+      <a href="/logout" class="btn-logout">ログアウト</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- タイトル -->
+    <div class="ranking-title">
+      <h1>🏆 ランキング</h1>
+    </div>
+
+    <!-- 自分の順位カード -->
+    <div class="my-rank-card">
+      <h2 class="card-title">📊 あなたの順位</h2>
+      <div class="my-rank-grid">
+        <div class="my-rank-item">
+          <div class="rank-label">図鑑コンプリート部門</div>
+          <div class="rank-value">
+            <span class="rank-number">{{ current_user_discovery_rank if current_user_discovery_rank else '-' }}</span>
+            <span class="rank-suffix">位</span>
+          </div>
+          <div class="rank-detail">{{ current_user_data.discovery_count if current_user_data else 0 }} / 70 匹</div>
+        </div>
+        
+        <div class="my-rank-item">
+          <div class="rank-label">総獲得★数部門</div>
+          <div class="rank-value">
+            <span class="rank-number">{{ current_user_stars_rank if current_user_stars_rank else '-' }}</span>
+            <span class="rank-suffix">位</span>
+          </div>
+          <div class="rank-detail">{% for i in range(current_user_data.total_stars if current_user_data else 0) %}★{% endfor %}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ランキングテーブル -->
+    <div class="ranking-grid">
+      <!-- 図鑑コンプリート部門 -->
+      <div class="ranking-card">
+        <h2 class="card-title">🔍 図鑑コンプリート部門</h2>
+        <div class="ranking-subtitle">発見したペットの数</div>
+        
+        <div class="ranking-table">
+          <div class="ranking-header">
+            <div class="rank-col">順位</div>
+            <div class="user-col">ユーザー</div>
+            <div class="score-col">発見数</div>
+          </div>
+          
+          {% for user in top10_discovery %}
+          <div class="ranking-row {% if user.username == username %}highlight{% endif %}">
+            <div class="rank-col">
+              {% if loop.index == 1 %}
+                <span class="medal gold">🥇</span>
+              {% elif loop.index == 2 %}
+                <span class="medal silver">🥈</span>
+              {% elif loop.index == 3 %}
+                <span class="medal bronze">🥉</span>
+              {% else %}
+                <span class="rank-text">{{ loop.index }}</span>
+              {% endif %}
+            </div>
+            <div class="user-col">
+              <span class="username">{{ user.username }}</span>
+              {% if user.username == username %}
+                <span class="badge-you">YOU</span>
+              {% endif %}
+            </div>
+            <div class="score-col">
+              <span class="score-value">{{ user.discovery_count }}</span>
+              <span class="score-max">/ 70</span>
+            </div>
+          </div>
+          {% endfor %}
+          
+          {% if top10_discovery|length == 0 %}
+          <div class="ranking-empty">
+            まだデータがありません
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 総獲得★数部門 -->
+      <div class="ranking-card">
+        <h2 class="card-title">⭐ 総獲得★数部門</h2>
+        <div class="ranking-subtitle">レアペットの獲得数</div>
+        
+        <div class="ranking-table">
+          <div class="ranking-header">
+            <div class="rank-col">順位</div>
+            <div class="user-col">ユーザー</div>
+            <div class="score-col">★数</div>
+          </div>
+          
+          {% for user in top10_stars %}
+          <div class="ranking-row {% if user.username == username %}highlight{% endif %}">
+            <div class="rank-col">
+              {% if loop.index == 1 %}
+                <span class="medal gold">🥇</span>
+              {% elif loop.index == 2 %}
+                <span class="medal silver">🥈</span>
+              {% elif loop.index == 3 %}
+                <span class="medal bronze">🥉</span>
+              {% else %}
+                <span class="rank-text">{{ loop.index }}</span>
+              {% endif %}
+            </div>
+            <div class="user-col">
+              <span class="username">{{ user.username }}</span>
+              {% if user.username == username %}
+                <span class="badge-you">YOU</span>
+              {% endif %}
+            </div>
+            <div class="score-col">
+              <span class="stars">
+                {% for i in range(user.total_stars) %}★{% endfor %}
+              </span>
+              <span class="star-count">({{ user.total_stars }})</span>
+            </div>
+          </div>
+          {% endfor %}
+          
+          {% if top10_stars|length == 0 %}
+          <div class="ranking-empty">
+            まだデータがありません
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- 戻るボタン -->
+    <div class="back-button-container">
+      <a href="/pet" class="btn btn-light">← ペット詳細に戻る</a>
+    </div>
+  </div>
+
+  <script src="/static/js/ranking.js"></script>
+  <script src="/static/js/mobile-ui.js"></script>
+
+  <script>
+  // Service Worker登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/js/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker登録成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker登録失敗:', error);
+        });
+    });
+  }
+  </script>
+</body>
+</html>
