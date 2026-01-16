@@ -835,7 +835,7 @@ def achieve_goal():
     user_goals[month_key]["achieved"] = True
     save_user_goals(user_goals)
     
-    coin_reward = 15000000000000
+    coin_reward = 1500
     pet["coins"] += coin_reward
     pet["message"] = f"月目標達成おめでとう!コインを{coin_reward}枚獲得!(コイン: {pet['coins']})"
     save_user_pet(pet)
