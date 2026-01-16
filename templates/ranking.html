@@ -184,9 +184,10 @@
             </div>
             <div class="score-col">
               <span class="stars">
-                {% set big_stars = user.total_stars // 5 %}
+                {% set huge_stars = user.total_stars // 10 %}
+                {% set big_stars = (user.total_stars % 10) // 5 %}
                 {% set small_stars = user.total_stars % 5 %}
-                {% for i in range(big_stars) %}<span class="big-star">⭐</span>{% endfor %}{% for i in range(small_stars) %}<span class="small-star">★</span>{% endfor %}
+                {% for i in range(huge_stars) %}<span class="huge-star">🌟</span>{% endfor %}{% for i in range(big_stars) %}<span class="big-star">⭐</span>{% endfor %}{% for i in range(small_stars) %}<span class="small-star">★</span>{% endfor %}
               </span>
               <span class="star-count">({{ user.total_stars }})</span>
             </div>
