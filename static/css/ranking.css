@@ -437,3 +437,253 @@
     filter: brightness(1.2);
   }
 }
+
+/* =============================================================================
+  🎉 図鑑コンプリート祝福演出
+   ============================================================================= */
+
+/* 虹色背景アニメーション（body全体） */
+body.celebration-mode {
+  animation: rainbow-background 8s linear infinite;
+}
+
+@keyframes rainbow-background {
+  0% { background: linear-gradient(135deg, #ff0000, #ff7f00); }
+  14% { background: linear-gradient(135deg, #ff7f00, #ffff00); }
+  28% { background: linear-gradient(135deg, #ffff00, #00ff00); }
+  42% { background: linear-gradient(135deg, #00ff00, #0000ff); }
+  57% { background: linear-gradient(135deg, #0000ff, #4b0082); }
+  71% { background: linear-gradient(135deg, #4b0082, #9400d3); }
+  85% { background: linear-gradient(135deg, #9400d3, #ff0000); }
+  100% { background: linear-gradient(135deg, #ff0000, #ff7f00); }
+}
+
+/* オーバーレイ */
+.celebration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 祝福コンテンツ */
+.celebration-content {
+  position: relative;
+  z-index: 10001;
+  text-align: center;
+  padding: 60px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 30px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(102, 126, 234, 0.6),
+    inset 0 0 80px rgba(255, 255, 255, 0.2);
+  max-width: 600px;
+  animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.5) rotate(-10deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* トロフィーアイコン */
+.celebration-icon {
+  font-size: 120px;
+  margin-bottom: 30px;
+  animation: 
+    trophy-bounce 1.5s ease-in-out infinite,
+    trophy-glow 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes trophy-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.1); }
+}
+
+@keyframes trophy-glow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+  }
+  50% { 
+    filter: drop-shadow(0 0 60px rgba(255, 215, 0, 1));
+  }
+}
+
+/* タイトル */
+.celebration-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 20px;
+  color: #fff;
+  text-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.8),
+    0 0 40px rgba(255, 215, 0, 0.6),
+    0 5px 10px rgba(0, 0, 0, 0.5);
+  letter-spacing: 8px;
+}
+
+.celebration-word {
+  display: inline-block;
+  animation: word-bounce 1.5s ease-in-out infinite;
+}
+
+.celebration-word:nth-child(1) { animation-delay: 0s; }
+.celebration-word:nth-child(2) { animation-delay: 0.1s; }
+.celebration-word:nth-child(3) { animation-delay: 0.2s; }
+.celebration-word:nth-child(4) { animation-delay: 0.3s; }
+.celebration-word:nth-child(5) { animation-delay: 0.4s; }
+.celebration-word:nth-child(6) { animation-delay: 0.5s; }
+.celebration-word:nth-child(7) { animation-delay: 0.6s; }
+.celebration-word:nth-child(8) { animation-delay: 0.7s; }
+.celebration-word:nth-child(9) { animation-delay: 0.8s; }
+
+@keyframes word-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* サブタイトル */
+.celebration-subtitle {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 30px;
+  font-weight: 600;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* メッセージ */
+.celebration-message {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 40px;
+  animation: pulse-glow 2s ease-in-out infinite;
+  text-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.8),
+    0 0 20px rgba(255, 215, 0, 0.6),
+    0 0 30px rgba(255, 215, 0, 0.4);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+}
+
+/* 閉じるボタン */
+.celebration-close {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  padding: 15px 40px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.celebration-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* =============================================================================
+  🎊 紙吹雪エフェクト
+   ============================================================================= */
+
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #f0f;
+  top: -10px;
+  opacity: 0;
+  animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* =============================================================================
+  レスポンシブ対応
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .celebration-content {
+    padding: 40px 20px;
+    margin: 20px;
+  }
+
+  .celebration-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+  }
+
+  .celebration-title {
+    font-size: 2rem;
+    letter-spacing: 4px;
+  }
+
+  .celebration-subtitle {
+    font-size: 1.125rem;
+    margin-bottom: 20px;
+  }
+
+  .celebration-message {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+  }
+
+  .celebration-close {
+    padding: 12px 30px;
+    font-size: 1rem;
+  }
+}

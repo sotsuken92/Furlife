@@ -17,7 +17,32 @@
   <link rel="stylesheet" href="/static/css/mobile-enhancements.css">
 </head>
 
-<body>
+<body {% if show_celebration %}class="celebration-mode"{% endif %}>
+  <!-- 🎉 コンプリート祝福演出 -->
+  {% if show_celebration %}
+  <div class="celebration-overlay" id="celebrationOverlay">
+    <div class="celebration-content">
+      <div class="celebration-icon">🏆</div>
+      <h1 class="celebration-title">
+        <span class="celebration-word">図</span>
+        <span class="celebration-word">鑑</span>
+        <span class="celebration-word">コ</span>
+        <span class="celebration-word">ン</span>
+        <span class="celebration-word">プ</span>
+        <span class="celebration-word">リ</span>
+        <span class="celebration-word">ー</span>
+        <span class="celebration-word">ト</span>
+        <span class="celebration-word">!</span>
+      </h1>
+      <p class="celebration-subtitle">全70種類のペットを発見しました!</p>
+      <div class="celebration-message">おめでとうございます!</div>
+      <button class="celebration-close" onclick="closeCelebration()">✕ 閉じる</button>
+    </div>
+    <!-- 紙吹雪エフェクト -->
+    <div class="confetti-container" id="confettiContainer"></div>
+  </div>
+  {% endif %}
+
   <!-- ヘッダー -->
   <header class="header">
     <div class="header-left">
@@ -76,13 +101,28 @@
   <div class="container">
     <!-- タイトル -->
     <div class="ranking-title">
-      <h1>　 ランキング</h1>
+      <h1>  ランキング</h1>
     </div>
 
     <!-- 自分の順位カード -->
     <div class="my-rank-card">
-      <h2 class="card-title">　 あなたの順位</h2>
+      <h2 class="card-title">  あなたの順位</h2>
       <div class="my-rank-grid">
+        <div class="my-rank-item">
+          <div class="rank-label">図鑑コンプリート部門</div>
+          <div class="rank-value">
+            <span class="rank-number">{{ current_user_discovery_rank if current_user_discovery_rank else '-' }}</span>
+            <span class="rank-suffix">位</span>
+          </div>
+          <div class="rank-detail">
+            {% if current_user_data %}
+              {{ current_user_data.discovery_count }} / 70 種類
+            {% else %}
+              0 / 70 種類
+            {% endif %}
+          </div>
+        </div>
+        
         <div class="my-rank-item">
           <div class="rank-label">総獲得★数部門</div>
           <div class="rank-value">
@@ -101,15 +141,6 @@
             {% endif %}
           </div>
         </div>
-        
-        <div class="my-rank-item">
-          <div class="rank-label">総獲得★数部門</div>
-          <div class="rank-value">
-            <span class="rank-number">{{ current_user_stars_rank if current_user_stars_rank else '-' }}</span>
-            <span class="rank-suffix">位</span>
-          </div>
-          <div class="rank-detail">{% for i in range(current_user_data.total_stars if current_user_data else 0) %}★{% endfor %}</div>
-        </div>
       </div>
     </div>
 
@@ -117,7 +148,7 @@
     <div class="ranking-grid">
       <!-- 図鑑コンプリート部門 -->
       <div class="ranking-card">
-        <h2 class="card-title">　 図鑑コンプリート部門</h2>
+        <h2 class="card-title">  図鑑コンプリート部門</h2>
         <div class="ranking-subtitle">発見したペットの数</div>
         
         <div class="ranking-table">
@@ -163,7 +194,7 @@
 
       <!-- 総獲得★数部門 -->
       <div class="ranking-card">
-        <h2 class="card-title">　 総獲得★数部門</h2>
+        <h2 class="card-title">  総獲得★数部門</h2>
         <div class="ranking-subtitle">レアペットの獲得数</div>
         
         <div class="ranking-table">
@@ -222,6 +253,13 @@
   <script src="/static/js/ranking.js"></script>
   <script src="/static/js/mobile-ui.js"></script>
 
+  {% if show_celebration %}
+  <script>
+  // 祝福演出の初期化
+  window.SHOW_CELEBRATION = true;
+  </script>
+  {% endif %}
+
   <script>
   // Service Worker登録
   if ('serviceWorker' in navigator) {
@@ -234,6 +272,18 @@
           console.log('Service Worker登録失敗:', error);
         });
     });
+  }
+
+  // 祝福オーバーレイを閉じる関数
+  function closeCelebration() {
+    const overlay = document.getElementById('celebrationOverlay');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.remove();
+        document.body.classList.remove('celebration-mode');
+      }, 500);
+    }
   }
   </script>
 </body>

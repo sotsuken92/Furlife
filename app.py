@@ -1276,6 +1276,19 @@ def ranking():
     
     pet = get_user_pet()
     
+    # ★図鑑コンプリート判定（全70種類）
+    is_complete = current_user_data and current_user_data["discovery_count"] >= 70
+    
+    # コンプリート済みフラグをチェック（初回のみ演出）
+    user_pokedex = get_user_pokedex()
+    already_celebrated = user_pokedex.get("complete_celebrated", False)
+    show_celebration = is_complete and not already_celebrated
+    
+    # 初回コンプリート時はフラグを保存
+    if show_celebration:
+        user_pokedex["complete_celebrated"] = True
+        save_user_pokedex(user_pokedex)
+    
     return render_template(
         "ranking.html",
         username=username,
@@ -1286,9 +1299,9 @@ def ranking():
         top10_stars=top10_stars,
         current_user_discovery_rank=current_user_discovery_rank,
         current_user_stars_rank=current_user_stars_rank,
-        current_user_data=current_user_data
+        current_user_data=current_user_data,
+        show_celebration=show_celebration  # ★追加
     )
-
 # =============================================================================
 # データベースインデックス作成
 # =============================================================================
