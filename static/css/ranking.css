@@ -387,3 +387,36 @@
     font-size: 0.875rem;
   }
 }
+
+.stars {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  max-width: 80px;
+}
+
+.big-star {
+  font-size: 1.25rem;
+  color: #fbbf24;
+  text-shadow: 0 0 6px rgba(251, 191, 36, 0.8);
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.small-star {
+  font-size: 0.875rem;
+  color: #fbbf24;
+  text-shadow: 0 0 4px rgba(251, 191, 36, 0.6);
+}
+
+@keyframes pulse-gold {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+}
