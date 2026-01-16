@@ -30,11 +30,11 @@ if not MONGODB_URI:
 # MongoDBクライアントの初期化
 client = MongoClient(
     MONGODB_URI,
-    maxPoolSize=10,      # 接続を使い回す
-    minPoolSize=2,       # 最低2つの接続を保持
-    maxIdleTimeMS=45000, # 45秒間接続を保持
-    connectTimeoutMS=5000,
-    serverSelectionTimeoutMS=5000
+    maxPoolSize=5,      # 接続を使い回す
+    minPoolSize=1,       # 最低2つの接続を保持
+    maxIdleTimeMS=30000, # 45秒間接続を保持
+    connectTimeoutMS=3000,
+    serverSelectionTimeoutMS=3000
 )
 db = client.furlife_db  # データベース名
 
