@@ -303,15 +303,15 @@ EXP_TABLE = {
 def calculate_success_reward(duration_minutes):
     """予定達成時のコインの獲得数を計算"""
     if duration_minutes < 30:
-        return 1000
+        return 500
     elif duration_minutes < 60:
-        return 2000
+        return 1000
     elif duration_minutes < 120:
-        return 5000
+        return 2500
     elif duration_minutes < 180:
-        return 10000
+        return 5000
     else:
-        return 25000
+        return 7500
 
 def calculate_failure_penalty(duration_minutes, current_level, pet_type):
     """予定失敗時のペナルティを計算"""
@@ -447,12 +447,12 @@ PET_NAMES = {
 }
 
 PET_TYPES = {
-    1: {"name": "鳥系統", "description": "地面を這う可愛いペット"},
-    2: {"name": "獣系統", "description": "いかつく元気なペット"},
-    3: {"name": "可愛い系統", "description": "可愛く癒されるペット"},
-    4: {"name": "炎系統", "description": "情熱的で力強いペット"},
-    5: {"name": "寿司系統", "description": "醤油がベストなペット"},
-    6: {"name": "雑種系統", "description": "個性的で不思議なペット"},
+    1: {"name": "にわとりさん系統", "description": "地面を這う可愛いペット"},
+    2: {"name": "恐竜さん系統", "description": "いかつく元気なペット"},
+    3: {"name": "こねこさん系統", "description": "可愛く癒されるペット"},
+    4: {"name": "とらさん系統", "description": "情熱的で力強いペット"},
+    5: {"name": "お寿司さん系統", "description": "醤油がベストなペット"},
+    6: {"name": "よせあつめ系統", "description": "個性的で不思議なペット"},
 }
 
 def get_pet_image():

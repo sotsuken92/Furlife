@@ -615,11 +615,11 @@ function initEventHandlers() {
               const [endH, endM] = endTime.split(':').map(Number);
               const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
               
-              if (durationMinutes < 30) coinReward = 5;
-              else if (durationMinutes < 60) coinReward = 10;
-              else if (durationMinutes < 120) coinReward = 25;
-              else if (durationMinutes < 180) coinReward = 48;
-              else coinReward = 140;
+              if (durationMinutes < 30) coinReward = 500;
+              else if (durationMinutes < 60) coinReward = 1000;
+              else if (durationMinutes < 120) coinReward = 2500;
+              else if (durationMinutes < 180) coinReward = 5000;
+              else coinReward = 5000;
             }
             
             showCoinModal({
