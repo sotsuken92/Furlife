@@ -84,12 +84,22 @@
       <h2 class="card-title">　 あなたの順位</h2>
       <div class="my-rank-grid">
         <div class="my-rank-item">
-          <div class="rank-label">図鑑コンプリート部門</div>
+          <div class="rank-label">総獲得★数部門</div>
           <div class="rank-value">
-            <span class="rank-number">{{ current_user_discovery_rank if current_user_discovery_rank else '-' }}</span>
+            <span class="rank-number">{{ current_user_stars_rank if current_user_stars_rank else '-' }}</span>
             <span class="rank-suffix">位</span>
           </div>
-          <div class="rank-detail">{{ current_user_data.discovery_count if current_user_data else 0 }} / 70 匹</div>
+          <div class="rank-detail">
+            {% if current_user_data %}
+              {% set huge_stars = current_user_data.total_stars // 10 %}
+              {% set big_stars = (current_user_data.total_stars % 10) // 5 %}
+              {% set small_stars = current_user_data.total_stars % 5 %}
+              {% for i in range(huge_stars) %}<span class="huge-star">🌟</span>{% endfor %}{% for i in range(big_stars) %}<span class="big-star">⭐</span>{% endfor %}{% for i in range(small_stars) %}<span class="small-star">★</span>{% endfor %}
+              <span class="star-count-white">({{ current_user_data.total_stars }})</span>
+            {% else %}
+              0
+            {% endif %}
+          </div>
         </div>
         
         <div class="my-rank-item">
