@@ -126,7 +126,7 @@ function initQuantitySelectors() {
       const foodName = btn.dataset.food;
       const input = document.querySelector(`.quantity-input[data-food="${foodName}"]`);
       const currentValue = parseInt(input.value) || 1;
-      const newValue = Math.min(currentValue + 1, 99999);
+      const newValue = Math.min(currentValue + 1, 9999999);
       input.value = newValue;
       updateTotalPrice(foodName);
     });
@@ -148,7 +148,7 @@ function initQuantitySelectors() {
   qa('.quantity-input').forEach(input => {
     input.addEventListener('input', () => {
       let value = parseInt(input.value) || 1;
-      value = Math.max(1, Math.min(value, 99999));
+      value = Math.max(1, Math.min(value, 9999999));
       input.value = value;
       updateTotalPrice(input.dataset.food);
     });
