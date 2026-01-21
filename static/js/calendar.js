@@ -1402,7 +1402,7 @@ function initGoalButtons() {
           
           // コイン獲得演出を表示
           showCoinModal({
-            coinAmount: 150000,
+            coinAmount: 1500,
             totalCoins: data.coins,
             message: '月目標達成おめでとう!'
           });
