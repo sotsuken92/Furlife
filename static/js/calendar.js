@@ -615,7 +615,7 @@ function initEventHandlers() {
               const [endH, endM] = endTime.split(':').map(Number);
               const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
               
-              if (durationMinutes < 30) coinReward = 100000;
+              if (durationMinutes < 30) coinReward = 500;
               else if (durationMinutes < 60) coinReward = 1000;
               else if (durationMinutes < 120) coinReward = 2500;
               else if (durationMinutes < 180) coinReward = 5000;
