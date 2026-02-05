@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>オークション市場</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/css/auction.css">
+  <!-- PWA用メタタグ -->
+  <meta name="theme-color" content="#3182ce">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Furlife">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+  <!-- モバイルUI拡張 -->
+  <link rel="stylesheet" href="/static/css/mobile-enhancements.css">
+</head>
+
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">🐾 Furlife</div>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">カレンダー</a>
+        <a href="/pet" class="nav-link">ペット詳細</a>
+        <a href="/shop" class="nav-link">ショップ</a>
+        <a href="/auction" class="nav-link active">オークション</a>
+        <a href="/ranking" class="nav-link">ランキング</a>
+        
+        <!-- 設定メニュー -->
+        <div class="settings-wrapper">
+          <div class="settings-trigger">設定 ▾</div>
+          <div class="settings-menu">
+            <div class="settings-section">
+              <div class="settings-section-header">
+                <span>テーマを選択</span>
+                <span class="settings-arrow">▼</span>
+              </div>
+              <div class="settings-section-content">
+                <div class="theme-category-title">ライトモード</div>
+                <div class="theme-grid">
+                  <div class="theme-color-box red" data-theme="red-light"></div>
+                  <div class="theme-color-box orange" data-theme="orange-light"></div>
+                  <div class="theme-color-box yellow" data-theme="yellow-light"></div>
+                  <div class="theme-color-box green" data-theme="green-light"></div>
+                  <div class="theme-color-box blue" data-theme="blue-light"></div>
+                  <div class="theme-color-box purple" data-theme="purple-light"></div>
+                </div>
+                
+                <div class="theme-category-title">ダークモード</div>
+                <div class="theme-grid">
+                  <div class="theme-color-box red-dark" data-theme="red-dark"></div>
+                  <div class="theme-color-box orange-dark" data-theme="orange-dark"></div>
+                  <div class="theme-color-box yellow-dark" data-theme="yellow-dark"></div>
+                  <div class="theme-color-box green-dark" data-theme="green-dark"></div>
+                  <div class="theme-color-box blue-dark" data-theme="blue-dark"></div>
+                  <div class="theme-color-box purple-dark" data-theme="purple-dark"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="coin-info"><img src="/static/images/coin/coin.jpg"> <span id="header-coin-count">{{ pet.coins }}</span></span>
+      <span class="user-info">{{ username }}さん</span>
+      <a href="/logout" class="btn-logout">ログアウト</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- タイトル -->
+    <div class="auction-title">
+      <h1>🏛️ オークション市場</h1>
+      <p class="subtitle">ペットを出品・入札してコレクションを拡大しよう！</p>
+    </div>
+
+    <!-- タブナビゲーション -->
+    <div class="auction-tabs">
+      <button class="tab-btn active" data-tab="all">全てのオークション</button>
+      <button class="tab-btn" data-tab="my-listings">自分の出品</button>
+      <button class="tab-btn" data-tab="my-bids">入札中</button>
+      <button class="tab-btn" data-tab="create">新規出品</button>
+    </div>
+
+    <!-- 全てのオークション -->
+    <div class="tab-content active" id="tab-all">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>並び替え:</label>
+          <select id="sort-select">
+            <option value="ending-soon">終了が近い順</option>
+            <option value="price-low">価格が安い順</option>
+            <option value="price-high">価格が高い順</option>
+            <option value="rarity-high">レア度が高い順</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>レア度:</label>
+          <select id="rarity-filter">
+            <option value="all">全て</option>
+            <option value="5">★★★★★</option>
+            <option value="4">★★★★</option>
+            <option value="3">★★★</option>
+            <option value="2">★★</option>
+            <option value="1">★</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="auction-grid" id="auction-list">
+        {% if auctions|length == 0 %}
+        <div class="empty-state">
+          <div class="empty-icon">🏺</div>
+          <p>現在オークションはありません</p>
+          <p class="empty-subtitle">自分のペットを出品してみましょう！</p>
+        </div>
+        {% else %}
+          {% for auction in auctions %}
+          <div class="auction-card" data-rarity="{{ auction.rarity }}" data-price="{{ auction.current_price }}" data-time="{{ auction.time_remaining.total_seconds }}">
+            <div class="auction-header">
+              <div class="seller-info">
+                <span class="seller-icon">👤</span>
+                <span class="seller-name">{{ auction.seller }}</span>
+              </div>
+              <div class="rarity-badge rarity-{{ auction.rarity }}">
+                {% for i in range(auction.rarity) %}★{% endfor %}
+              </div>
+            </div>
+
+            <div class="pet-display">
+              <img src="/static/images/{{ auction.image }}" alt="ペット" class="pet-image">
+              <div class="pet-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Lv.</span>
+                  <span class="stat-value">{{ auction.pet_data.level }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">タイプ</span>
+                  <span class="stat-value">{{ auction.pet_data.pet_type }}</span>
+                </div>
+                {% if auction.pet_data.level >= 30 %}
+                <div class="stat-item">
+                  <span class="stat-label">進化</span>
+                  <span class="stat-value">{{ auction.pet_data.evolution }}</span>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="auction-info">
+              <div class="price-section">
+                <div class="price-label">現在の価格</div>
+                <div class="price-amount">
+                  <img src="/static/images/coin/coin.jpg" class="coin-icon">
+                  <span class="price-value">{{ auction.current_price }}</span>
+                </div>
+                <div class="bid-count">{{ auction.bid_count }}件の入札</div>
+              </div>
+
+              <div class="time-section">
+                <div class="time-label">残り時間</div>
+                <div class="countdown" data-end-seconds="{{ auction.time_remaining.total_seconds }}">
+                  {% if auction.time_remaining.days > 0 %}
+                    <span class="time-part"><span class="time-num">{{ auction.time_remaining.days }}</span>日</span>
+                  {% endif %}
+                  <span class="time-part"><span class="time-num">{{ auction.time_remaining.hours }}</span>時間</span>
+                  <span class="time-part"><span class="time-num">{{ auction.time_remaining.minutes }}</span>分</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="auction-actions">
+              {% if auction.is_own %}
+                <button class="btn-secondary" disabled>自分の出品</button>
+                {% if auction.bid_count == 0 %}
+                <button class="btn-cancel" data-auction-id="{{ auction.id }}">キャンセル</button>
+                {% endif %}
+              {% else %}
+                {% if auction.is_highest_bidder %}
+                  <button class="btn-success" disabled>最高入札者</button>
+                {% else %}
+                  <button class="btn-primary btn-bid" data-auction-id="{{ auction.id }}" data-current-price="{{ auction.current_price }}">入札する</button>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 自分の出品 -->
+    <div class="tab-content" id="tab-my-listings">
+      <div class="auction-grid">
+        {% if my_auctions|length == 0 %}
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <p>出品中のペットはありません</p>
+        </div>
+        {% else %}
+          {% for auction in my_auctions %}
+          <!-- 上記と同様のカード表示 -->
+          <div class="auction-card">
+            <!-- 省略 -->
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 入札中 -->
+    <div class="tab-content" id="tab-my-bids">
+      <div class="auction-grid">
+        {% if my_bidding_auctions|length == 0 %}
+        <div class="empty-state">
+          <div class="empty-icon">🔨</div>
+          <p>入札中のオークションはありません</p>
+        </div>
+        {% else %}
+          {% for auction in my_bidding_auctions %}
+          <!-- 上記と同様のカード表示 -->
+          <div class="auction-card">
+            <!-- 省略 -->
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 新規出品 -->
+    <div class="tab-content" id="tab-create">
+      <div class="create-auction-card">
+        <h2>ペットを出品する</h2>
+        
+        <div class="current-pet-display">
+          <h3>現在のペット</h3>
+          {% if pet.alive and pet.started %}
+          <div class="pet-preview">
+            <img src="/static/images/{{ image }}" alt="ペット" class="preview-image">
+            <div class="preview-stats">
+              <p><strong>レベル:</strong> {{ pet.level }}</p>
+              <p><strong>タイプ:</strong> {{ pet.pet_type }}</p>
+              <p><strong>経験値:</strong> {{ pet.exp }}</p>
+              {% if pet.level >= 30 %}
+              <p><strong>進化タイプ:</strong> {{ pet.evolution }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <div class="no-pet-warning">
+            <p>⚠️ 出品できるペットがいません</p>
+            <p>卵からペットを育てましょう！</p>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if pet.alive and pet.started %}
+        <div class="create-form">
+          <div class="form-group">
+            <label>開始価格（コイン）</label>
+            <input type="number" id="starting-price" min="1" value="100" class="form-input">
+            <p class="form-hint">手数料: <span id="fee-display">5</span>コイン (5%)</p>
+          </div>
+
+          <div class="form-group">
+            <label>オークション期間</label>
+            <div class="duration-options">
+              <label class="duration-option">
+                <input type="radio" name="duration" value="24h" checked>
+                <span>24時間</span>
+              </label>
+              <label class="duration-option">
+                <input type="radio" name="duration" value="48h">
+                <span>48時間</span>
+              </label>
+              <label class="duration-option">
+                <input type="radio" name="duration" value="72h">
+                <span>72時間</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <p>⚠️ 出品すると現在のペットは卵に戻ります</p>
+            <p>⚠️ 手数料は返金されません</p>
+          </div>
+
+          <button class="btn-primary btn-create-auction" id="btn-create-auction">出品する</button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 入札モーダル -->
+  <div class="modal" id="bid-modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>入札する</h3>
+        <button class="modal-close" id="close-bid-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>現在の価格: <strong><span id="modal-current-price">0</span>コイン</strong></p>
+        <p>あなたの所持コイン: <strong><span id="modal-user-coins">{{ pet.coins }}</span>コイン</strong></p>
+        
+        <div class="form-group">
+          <label>入札額（コイン）</label>
+          <input type="number" id="bid-amount" class="form-input" min="1">
+          <p class="form-hint">現在の価格より高い金額を入力してください</p>
+        </div>
+
+        <div class="quick-bid-buttons">
+          <button class="btn-quick-bid" data-add="10">+10</button>
+          <button class="btn-quick-bid" data-add="50">+50</button>
+          <button class="btn-quick-bid" data-add="100">+100</button>
+          <button class="btn-quick-bid" data-add="500">+500</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancel-bid">キャンセル</button>
+        <button class="btn-primary" id="confirm-bid">入札</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/auction.js"></script>
+  <script src="/static/js/mobile-ui.js"></script>
+
+  <script>
+  // Service Worker登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/static/js/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker登録成功:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker登録失敗:', error);
+        });
+    });
+  }
+  </script>
+</body>
+</html>

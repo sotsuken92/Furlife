@@ -1,5 +1,6 @@
 from flask import send_from_directory
 from flask import Flask, request, redirect, url_for, jsonify, render_template, session
+from flask import send_from_directory
 import json
 import re
 from datetime import datetime
@@ -1320,6 +1321,558 @@ def init_db():
     except Exception as e:
         print(f"⚠️ Index creation note: {e}")
 
+# =============================================================================
+# app.pyに追加するコード
+# 既存のapp.pyの最後（if __name__ == "__main__":の前）に追加してください
+# =============================================================================
+
+# オークション用コレクション
+auctions_collection = db.auctions
+bids_collection = db.bids
+
+# =============================================================================
+# オークション関連の定数
+# =============================================================================
+
+AUCTION_DURATIONS = {
+    "24h": 24 * 60 * 60,  # 24時間（秒）
+    "48h": 48 * 60 * 60,  # 48時間（秒）
+    "72h": 72 * 60 * 60,  # 72時間（秒）
+}
+
+AUCTION_FEE_RATE = 0.05  # 出品手数料 5%
+
+# =============================================================================
+# ペットタイプ8（スタンド系）の追加
+# =============================================================================
+
+# 既存のget_evolution_type関数に以下を追加
+# def get_evolution_type(pet_type):
+#     ...
+#     elif pet_type == 8:
+#         return random.randint(1, 5)  # スタンド系は1-5タイプ
+
+# =============================================================================
+# オークション関連ヘルパー関数
+# =============================================================================
+
+def get_pet_rarity_value(pet_data):
+    """ペットのレア度を数値で返す（★の数）"""
+    if not pet_data.get("alive") or not pet_data.get("started"):
+        return 0
+    
+    pet_type = pet_data.get("pet_type")
+    level = pet_data.get("level", 0)
+    evolution = pet_data.get("evolution", 1)
+    
+    if level < 10:
+        return 1  # ★1
+    elif level < 20:
+        return 2  # ★2
+    elif level < 30:
+        return 3  # ★3
+    else:
+        # 最終進化の場合、タイプによってレア度が異なる
+        if evolution == 1:
+            return 3  # ★3
+        elif evolution == 2:
+            return 4  # ★4
+        elif evolution == 3:
+            return 5  # ★5
+        elif evolution == 4:
+            return 4  # ★4
+        else:
+            return 5  # ★5
+    
+    return 3
+
+def calculate_auction_fee(price):
+    """出品手数料を計算"""
+    return int(price * AUCTION_FEE_RATE)
+
+def is_auction_active(auction):
+    """オークションがまだ有効かチェック"""
+    now = datetime.now(JST)
+    end_time = auction.get("end_time")
+    
+    if isinstance(end_time, str):
+        end_time = datetime.fromisoformat(end_time)
+    
+    # タイムゾーン情報がない場合はJSTとして扱う
+    if end_time.tzinfo is None:
+        end_time = JST.localize(end_time)
+    
+    return now < end_time and auction.get("status") == "active"
+
+def get_time_remaining(end_time):
+    """残り時間を計算して返す"""
+    now = datetime.now(JST)
+    
+    if isinstance(end_time, str):
+        end_time = datetime.fromisoformat(end_time)
+    
+    if end_time.tzinfo is None:
+        end_time = JST.localize(end_time)
+    
+    remaining = end_time - now
+    
+    if remaining.total_seconds() <= 0:
+        return {"days": 0, "hours": 0, "minutes": 0, "seconds": 0}
+    
+    days = remaining.days
+    hours = remaining.seconds // 3600
+    minutes = (remaining.seconds % 3600) // 60
+    seconds = remaining.seconds % 60
+    
+    return {
+        "days": days,
+        "hours": hours,
+        "minutes": minutes,
+        "seconds": seconds,
+        "total_seconds": int(remaining.total_seconds())
+    }
+
+# =============================================================================
+# オークションページ
+# =============================================================================
+
+@app.route("/auction")
+def auction():
+    """オークション市場ページ"""
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    username = session.get("username")
+    pet = get_user_pet()
+    
+    # 現在アクティブなオークションを取得
+    active_auctions = list(auctions_collection.find({"status": "active"}))
+    
+    # 各オークションの情報を整形
+    auction_list = []
+    for auction in active_auctions:
+        # 残り時間を計算
+        time_remaining = get_time_remaining(auction["end_time"])
+        
+        # 現在の最高入札額を取得
+        highest_bid = bids_collection.find_one(
+            {"auction_id": str(auction["_id"])},
+            sort=[("amount", -1)]
+        )
+        
+        current_price = highest_bid["amount"] if highest_bid else auction["starting_price"]
+        bid_count = bids_collection.count_documents({"auction_id": str(auction["_id"])})
+        
+        # 自分が最高入札者かチェック
+        is_highest_bidder = False
+        if highest_bid and highest_bid.get("bidder") == username:
+            is_highest_bidder = True
+        
+        auction_list.append({
+            "id": str(auction["_id"]),
+            "pet_data": auction["pet_data"],
+            "seller": auction["seller"],
+            "starting_price": auction["starting_price"],
+            "current_price": current_price,
+            "bid_count": bid_count,
+            "time_remaining": time_remaining,
+            "is_own": auction["seller"] == username,
+            "is_highest_bidder": is_highest_bidder,
+            "image": auction.get("image", "pet1/egg.jpg"),
+            "rarity": auction.get("rarity", 1)
+        })
+    
+    # 残り時間でソート（終了が近い順）
+    auction_list.sort(key=lambda x: x["time_remaining"]["total_seconds"])
+    
+    # 自分の出品中オークションを取得
+    my_auctions = [a for a in auction_list if a["is_own"]]
+    
+    # 自分の入札履歴を取得
+    my_bids = list(bids_collection.find({"bidder": username}))
+    my_bid_auction_ids = [bid["auction_id"] for bid in my_bids]
+    my_bidding_auctions = [a for a in auction_list if a["id"] in my_bid_auction_ids]
+    
+    return render_template(
+        "auction.html",
+        username=username,
+        pet=pet,
+        image=get_pet_image(),
+        exp_table=EXP_TABLE,
+        auctions=auction_list,
+        my_auctions=my_auctions,
+        my_bidding_auctions=my_bidding_auctions
+    )
+
+# =============================================================================
+# オークション作成API
+# =============================================================================
+
+@app.route("/api/auction/create", methods=["POST"])
+def create_auction():
+    """新しいオークションを作成"""
+    if "username" not in session:
+        return jsonify({"error": "未ログイン"}), 401
+    
+    username = session.get("username")
+    data = request.get_json()
+    
+    starting_price = data.get("starting_price")
+    duration = data.get("duration")  # "24h", "48h", "72h"
+    
+    # バリデーション
+    if not starting_price or starting_price < 1:
+        return jsonify({"error": "開始価格は1コイン以上である必要があります"}), 400
+    
+    if duration not in AUCTION_DURATIONS:
+        return jsonify({"error": "無効な期間設定です"}), 400
+    
+    # 現在のペット情報を取得
+    pet = get_user_pet()
+    
+    # 出品条件チェック
+    if not pet.get("alive") or not pet.get("started"):
+        return jsonify({"error": "卵は出品できません"}), 400
+    
+    # 出品手数料を計算
+    fee = calculate_auction_fee(starting_price)
+    
+    if pet.get("coins", 0) < fee:
+        return jsonify({"error": f"手数料が不足しています（必要: {fee}コイン）"}), 400
+    
+    # 手数料を徴収
+    pet["coins"] -= fee
+    
+    # ペットのコピーを作成（出品用）
+    pet_data_copy = {
+        "level": pet["level"],
+        "exp": pet["exp"],
+        "pet_type": pet["pet_type"],
+        "evolution": pet.get("evolution", 1),
+        "alive": pet["alive"],
+        "started": pet["started"]
+    }
+    
+    # オークション終了時刻を計算
+    now = datetime.now(JST)
+    end_time = now + timedelta(seconds=AUCTION_DURATIONS[duration])
+    
+    # レア度を取得
+    rarity = get_pet_rarity_value(pet)
+    
+    # ペット画像を取得
+    pet_image = get_pet_image()
+    
+    # オークションを作成
+    auction_data = {
+        "seller": username,
+        "pet_data": pet_data_copy,
+        "starting_price": starting_price,
+        "created_at": now,
+        "end_time": end_time,
+        "status": "active",
+        "fee": fee,
+        "image": pet_image,
+        "rarity": rarity
+    }
+    
+    result = auctions_collection.insert_one(auction_data)
+    
+    # ペットをリセット（卵に戻す）
+    pet.update({
+        "alive": False,
+        "started": False,
+        "level": 0,
+        "exp": 0,
+        "evolution": 1,
+        "pet_type": None,
+        "message": "ペットを出品しました！新しいペットを育てましょう。"
+    })
+    
+    save_user_pet(pet)
+    
+    return jsonify({
+        "success": True,
+        "auction_id": str(result.inserted_id),
+        "message": f"オークションを作成しました（手数料: {fee}コイン）",
+        "coins": pet["coins"]
+    })
+
+# =============================================================================
+# 入札API
+# =============================================================================
+
+@app.route("/api/auction/bid", methods=["POST"])
+def place_bid():
+    """オークションに入札"""
+    if "username" not in session:
+        return jsonify({"error": "未ログイン"}), 401
+    
+    username = session.get("username")
+    data = request.get_json()
+    
+    auction_id = data.get("auction_id")
+    bid_amount = data.get("amount")
+    
+    if not auction_id or not bid_amount:
+        return jsonify({"error": "無効なリクエストです"}), 400
+    
+    # オークション情報を取得
+    auction = auctions_collection.find_one({"_id": ObjectId(auction_id)})
+    
+    if not auction:
+        return jsonify({"error": "オークションが見つかりません"}), 404
+    
+    # 自分の出品には入札できない
+    if auction["seller"] == username:
+        return jsonify({"error": "自分の出品には入札できません"}), 400
+    
+    # オークションがまだ有効かチェック
+    if not is_auction_active(auction):
+        return jsonify({"error": "このオークションは終了しています"}), 400
+    
+    # 現在の最高入札額を取得
+    highest_bid = bids_collection.find_one(
+        {"auction_id": auction_id},
+        sort=[("amount", -1)]
+    )
+    
+    current_highest = highest_bid["amount"] if highest_bid else auction["starting_price"]
+    
+    # 入札額が現在の最高額より高いかチェック
+    if bid_amount <= current_highest:
+        return jsonify({"error": f"入札額は{current_highest + 1}コイン以上である必要があります"}), 400
+    
+    # コイン残高をチェック
+    pet = get_user_pet()
+    
+    if pet.get("coins", 0) < bid_amount:
+        return jsonify({"error": "コインが不足しています"}), 400
+    
+    # 前回の自分の入札を取得（返金用）
+    previous_bid = bids_collection.find_one({
+        "auction_id": auction_id,
+        "bidder": username
+    })
+    
+    # 前回の入札があれば返金
+    refund_amount = 0
+    if previous_bid:
+        refund_amount = previous_bid["amount"]
+        pet["coins"] += refund_amount
+    
+    # 新しい入札額を差し引く
+    pet["coins"] -= bid_amount
+    save_user_pet(pet)
+    
+    # 入札を記録
+    bid_data = {
+        "auction_id": auction_id,
+        "bidder": username,
+        "amount": bid_amount,
+        "bid_time": datetime.now(JST)
+    }
+    
+    # 既存の入札を更新または新規作成
+    bids_collection.update_one(
+        {"auction_id": auction_id, "bidder": username},
+        {"$set": bid_data},
+        upsert=True
+    )
+    
+    return jsonify({
+        "success": True,
+        "message": f"{bid_amount}コインで入札しました",
+        "coins": pet["coins"],
+        "refund": refund_amount
+    })
+
+# =============================================================================
+# オークション終了処理（定期実行）
+# =============================================================================
+
+@app.route("/api/auction/finalize", methods=["POST"])
+def finalize_auctions():
+    """終了したオークションを処理（管理者用または定期実行）"""
+    now = datetime.now(JST)
+    
+    # 終了したオークションを取得
+    expired_auctions = auctions_collection.find({
+        "status": "active",
+        "end_time": {"$lt": now}
+    })
+    
+    finalized_count = 0
+    
+    for auction in expired_auctions:
+        auction_id = str(auction["_id"])
+        
+        # 最高入札を取得
+        highest_bid = bids_collection.find_one(
+            {"auction_id": auction_id},
+            sort=[("amount", -1)]
+        )
+        
+        if highest_bid:
+            # 落札成功
+            winner = highest_bid["bidder"]
+            final_price = highest_bid["amount"]
+            
+            # 落札者にペットを付与
+            winner_pet = get_user_pet_by_username(winner)
+            
+            # 現在のペットがいる場合は上書き警告（実装では強制上書き）
+            winner_pet.update(auction["pet_data"])
+            winner_pet["message"] = f"オークションで{auction['seller']}さんのペットを落札しました！"
+            
+            save_user_pet_by_username(winner, winner_pet)
+            
+            # 出品者に売上を付与
+            seller_pet = get_user_pet_by_username(auction["seller"])
+            seller_pet["coins"] = seller_pet.get("coins", 0) + final_price
+            seller_pet["message"] = f"あなたのペットが{final_price}コインで落札されました！"
+            save_user_pet_by_username(auction["seller"], seller_pet)
+            
+            # オークションのステータスを更新
+            auctions_collection.update_one(
+                {"_id": auction["_id"]},
+                {"$set": {
+                    "status": "sold",
+                    "winner": winner,
+                    "final_price": final_price,
+                    "finalized_at": now
+                }}
+            )
+            
+        else:
+            # 入札なし - 出品者にペットを返却
+            seller_pet = get_user_pet_by_username(auction["seller"])
+            seller_pet.update(auction["pet_data"])
+            seller_pet["message"] = "オークションが終了しましたが、入札がありませんでした。"
+            save_user_pet_by_username(auction["seller"], seller_pet)
+            
+            # オークションのステータスを更新
+            auctions_collection.update_one(
+                {"_id": auction["_id"]},
+                {"$set": {
+                    "status": "unsold",
+                    "finalized_at": now
+                }}
+            )
+        
+        finalized_count += 1
+    
+    return jsonify({
+        "success": True,
+        "finalized": finalized_count
+    })
+
+# =============================================================================
+# ヘルパー関数（ユーザー指定版）
+# =============================================================================
+
+def get_user_pet_by_username(target_username):
+    """指定したユーザーのペットデータを取得"""
+    doc = pets_collection.find_one({"username": target_username})
+    if not doc:
+        return {
+            "level": 0, "food": 0, "exp": 0, "coins": 0,
+            "message": "",
+            "alive": False, "started": False, "pet_type": None, "evolution": 1,
+            "inventory": {
+                '基本の餌': 0,
+                'おいしい餌': 0,
+                'プレミアム餌': 0,
+                'スペシャル餌': 0,
+            }
+        }
+    return doc
+
+def save_user_pet_by_username(target_username, pet_data):
+    """指定したユーザーのペットデータを保存"""
+    pet_data["username"] = target_username
+    pets_collection.update_one(
+        {"username": target_username},
+        {"$set": pet_data},
+        upsert=True
+    )
+
+# =============================================================================
+# オークションキャンセルAPI
+# =============================================================================
+
+@app.route("/api/auction/cancel", methods=["POST"])
+def cancel_auction():
+    """オークションをキャンセル（入札がない場合のみ）"""
+    if "username" not in session:
+        return jsonify({"error": "未ログイン"}), 401
+    
+    username = session.get("username")
+    data = request.get_json()
+    
+    auction_id = data.get("auction_id")
+    
+    if not auction_id:
+        return jsonify({"error": "無効なリクエストです"}), 400
+    
+    # オークション情報を取得
+    auction = auctions_collection.find_one({"_id": ObjectId(auction_id)})
+    
+    if not auction:
+        return jsonify({"error": "オークションが見つかりません"}), 404
+    
+    # 自分の出品かチェック
+    if auction["seller"] != username:
+        return jsonify({"error": "自分の出品のみキャンセルできます"}), 400
+    
+    # 入札があるかチェック
+    bid_count = bids_collection.count_documents({"auction_id": auction_id})
+    
+    if bid_count > 0:
+        return jsonify({"error": "入札があるためキャンセルできません"}), 400
+    
+    # ペットを返却
+    pet = get_user_pet()
+    pet.update(auction["pet_data"])
+    pet["message"] = "オークションをキャンセルしました。"
+    
+    # 手数料は返却しない（仕様）
+    
+    save_user_pet(pet)
+    
+    # オークションを削除
+    auctions_collection.delete_one({"_id": ObjectId(auction_id)})
+    
+    return jsonify({
+        "success": True,
+        "message": "オークションをキャンセルしました"
+    })
+
+# =============================================================================
+# データベースインデックス追加
+# =============================================================================
+
+def init_auction_db():
+    """オークション関連のインデックスを作成"""
+    print("📊 Creating auction indexes...")
+    try:
+        auctions_collection.create_index([("seller", 1)])
+        auctions_collection.create_index([("status", 1)])
+        auctions_collection.create_index([("end_time", 1)])
+        bids_collection.create_index([("auction_id", 1)])
+        bids_collection.create_index([("bidder", 1)])
+        bids_collection.create_index([("auction_id", 1), ("amount", -1)])
+        print("✅ Auction indexes created successfully")
+    except Exception as e:
+        print(f"⚠️ Auction index creation note: {e}")
+
+# init_db()関数にinit_auction_db()を追加してください
+
+# =============================================================================
+# MongoDBのObjectIdインポート追加
+# =============================================================================
+# ファイル冒頭に以下を追加:
+# from bson import ObjectId
 # =============================================================================
 # アプリケーション起動
 # =============================================================================
