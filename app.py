@@ -448,12 +448,38 @@ PET_NAMES = {
 }
 
 PET_TYPES = {
-    1: {"name": "にわとりさん系統", "description": "地面を這う可愛いペット"},
-    2: {"name": "恐竜さん系統", "description": "いかつく元気なペット"},
-    3: {"name": "こねこさん系統", "description": "可愛く癒されるペット"},
-    4: {"name": "とらさん系統", "description": "情熱的で力強いペット"},
-    5: {"name": "お寿司さん系統", "description": "醤油がベストなペット"},
-    6: {"name": "よせあつめ系統", "description": "個性的で不思議なペット"},
+    1: {
+        "name": "ペット1",
+        "description": "基本のペット"
+    },
+    2: {
+        "name": "ペット2", 
+        "description": "かわいいペット"
+    },
+    3: {
+        "name": "ペット3",
+        "description": "元気なペット"
+    },
+    4: {
+        "name": "ペット4",
+        "description": "賢いペット"
+    },
+    5: {
+        "name": "ペット5",
+        "description": "不思議なペット"
+    },
+    6: {
+        "name": "ペット6",
+        "description": "強いペット"
+    },
+    7: {
+        "name": "ペット7",
+        "description": "優しいペット"
+    },
+    8: {  # ★追加
+        "name": "スタンド系",
+        "description": "ジョジョ風のスタンド"
+    }
 }
 
 def get_pet_image():
